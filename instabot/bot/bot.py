@@ -50,7 +50,7 @@ from .bot_support import add_whitelist, add_blacklist
 
 from .bot_stats import save_user_stats
 
-from .bot_util import getBotOperations, get_follow_delay, get_like_delay
+from .bot_util import getBotOperations, get_follow_delay, get_like_delay, get_spam_delay
 from .bot_action_handler import getLikeAmount, getFollowAmount, getAmountDistribution, getLikesPerformed, \
     getFollowPerformed
 
@@ -529,6 +529,8 @@ class Bot(API):
     def get_follow_delay(self, followAmount):
         return get_follow_delay(self, followAmount)
 
+    def get_spam_delay(self):
+        return get_spam_delay(self)
     def get_like_delay(self, likeAmount):
         return get_like_delay(self, likeAmount)
 

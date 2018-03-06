@@ -7,6 +7,7 @@ import random
 import logging
 from random import randint
 
+
 def add_dispersion(delay_value):
     return delay_value * 3 / 4 + delay_value * random.random() / 2
 
@@ -22,29 +23,37 @@ def sleep_if_need(last_action, target_delay):
         logger.info("Sleep %s seconds" % sleep_time)
         time.sleep(sleep_time)
 
-#remove the original implementation just to make sure the boot sleeps
+
+# remove the original implementation just to make sure the boot sleeps
 def like_delay(bot):
-    #sleep_if_need(bot.last_like, bot.like_delay)
-    bot.last_like = time.time()
+    # sleep_if_need(bot.last_like, bot.like_delay)
 
     logger = logging.getLogger('[instabot]')
-    sleep_time = randint(8,30)
-    logger.info("like_delay: Sleeping %s seconds, Max delay is: %s" % (sleep_time,bot.like_delay))
+    sleep_time = randint(bot.like_delay - 20, bot.like_delay)
+    logger.info("like_delay: Sleeping %s seconds, Max delay is: %s" % (sleep_time, bot.like_delay))
     time.sleep(sleep_time)
+    bot.last_like = time.time()
 
 
 def unlike_delay(bot):
-    sleep_if_need(bot.last_unlike, bot.unlike_delay)
+    logger = logging.getLogger('[instabot]')
+    sleep_time = randint(bot.like_delay - 20, bot.like_delay)
+    logger.info("unlike_delay: Sleeping %s seconds, Max delay is: %s" % (sleep_time, bot.like_delay))
+    time.sleep(sleep_time)
     bot.last_unlike = time.time()
 
-#todo fix this
+
 def follow_delay(bot):
-    sleep_if_need(bot.last_follow, bot.follow_delay)
+    sleep_time = randint(bot.follow_delay - 20, bot.follow_delay)
+    bot.info("follow_delay: Sleeping %s seconds, Max delay is: %s" % (sleep_time, bot.follow_delay))
+    time.sleep(sleep_time)
     bot.last_follow = time.time()
 
 
 def unfollow_delay(bot):
-    sleep_if_need(bot.last_unfollow, bot.unfollow_delay)
+    sleep_time = randint(bot.unfollow_delay - 20, bot.unfollow_delay)
+    bot.info("unfollow_delay: Sleeping %s seconds, Max delay is: %s" % (sleep_time, bot.unfollow_delay))
+    time.sleep(sleep_time)
     bot.last_unfollow = time.time()
 
 

@@ -36,6 +36,7 @@ from .prepare import delete_credentials
 from .api_db import insert, getBotIp
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.poolmanager import PoolManager
+from instabot.bot.bot_util import get_spam_delay
 import socket
 
 # The urllib library was split into other modules from Python 2 to Python 3
@@ -220,7 +221,8 @@ class API(object):
             if response.status_code == 400:
                 responseObject = self.loadJson(response.text)
                 if 'spam' in responseObject:
-                    sleep_minutes = randint(12, 22)
+
+                    sleep_minutes = get_spam_delay(self)
                     self.like_delay = self.like_delay_if_bot_blocked
                     self.follow_delay = self.follow_delay_if_bot_blocked
                     self.logger.warning(
