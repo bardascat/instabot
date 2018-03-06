@@ -6,6 +6,8 @@
 from ..api import api_db
 import math
 from datetime import *
+from random import randint
+import time
 
 def getBotOperations(self, id_campaign):
 
@@ -81,6 +83,23 @@ def getBotOperations(self, id_campaign):
 
     return operations
 
+def get_spam_delay(bot):
+    bot.logger.info("get_spam_delay: Calculating the spam delay")
+    bot.logger.info("get_spam_delay: Getting amounts of times the user %s was blocked", bot.web_application_id_user)
+    result = api_db.fetchOne("select count(*) as total from instagram_log where id_user=%s and details='spam' and date(timestamp)=curdate()", bot.web_application_id_user)
+    if result['total']>=10:
+        bot.logger.info("get_spam_delay: There were more than 10 blocks today, going to stop the bot")
+        raise Exception("get_spam_delay: More than 10 blocks today")
+    if result['total']>=4:
+        sleep = randint(60, 90)
+        bot.logger.info("get_spam_delay: There were more than 4 blocks today, going to pause for %s minutes ", sleep)
+        return sleep
+    else:
+        sleep = randint(10, 25)
+        bot.logger.info("get_spam_delay: There were less than 4 blocks today, going to pause for %s minutes ", sleep)
+        return  sleep
+
+
 def how_many_seconds_until_midnight():
     tomorrow = date.today() + timedelta(1)
     midnight = datetime.combine(tomorrow, time())
@@ -88,6 +107,8 @@ def how_many_seconds_until_midnight():
     return (midnight - now).seconds
 
 def get_like_delay(self,likeAmount):
+    return self.like_delay
+    # todo this code should be improved
     if likeAmount==0:
         return self.like_delay
 
@@ -105,6 +126,9 @@ def get_like_delay(self,likeAmount):
         return likeDelay
 
 def get_follow_delay(self,followAmount):
+    return self.follow_delay
+
+    #todo this code should be improved
     if followAmount==0:
         return self.follow_delay
     secondsUntilMidnight = how_many_seconds_until_midnight()

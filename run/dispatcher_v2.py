@@ -36,11 +36,11 @@ try:
         min_following_to_follow=10,  # default 10
         max_following_to_followers_ratio=4,  # default 2
         min_media_count_to_follow=20,  # default 3
-        like_delay=35,  # default 10,
-        like_delay_if_bot_blocked=70,
-        unlike_delay=15,  # default 1-
-        follow_delay=60,  # default 30,
-        unfollow_delay=40,  # default 30,
+        like_delay=40,
+        like_delay_if_bot_blocked=160,
+        follow_delay_if_bot_blocked=160,
+        follow_delay=80,  # default 30,
+        unfollow_delay=80,  # default 30,
         multiple_ip=True
     )
 
