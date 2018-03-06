@@ -28,7 +28,7 @@ def like_delay(bot):
     bot.last_like = time.time()
 
     logger = logging.getLogger('[instabot]')
-    sleep_time = randint(bot.like_delay-10, bot.like_delay+10)
+    sleep_time = randint(8,30)
     logger.info("like_delay: Sleeping %s seconds, Max delay is: %s" % (sleep_time,bot.like_delay))
     time.sleep(sleep_time)
 

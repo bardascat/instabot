@@ -3,6 +3,7 @@ import psutil
 import logging
 import os
 import signal
+from random import randint
 
 logging.basicConfig(format='%(asctime)s %(message)s',filename='/home/instabot-log/stop_bot.log',level=logging.DEBUG)
 ch = logging.StreamHandler()
@@ -27,6 +28,10 @@ def stopProcesses():
 			if processname in cmdline[0]:
 				logger.info("stopProcesses:Found %s, pid %s, going to kill it" % (cmdline[0], p.pid))
 				killProcess(p.pid)
+				sleep_minutes = randint(1, 3)
+				logger.info("stopProcesses: Going to sleep %s until killing the next bot", sleep_minutes)
+				time.sleep(sleep_minutes*60)
+				
 				
 	logger.info("stopProcesses: DONE")
 
