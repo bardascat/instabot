@@ -21,7 +21,7 @@ campaign = api_db.fetchOne("select username,password,timestamp,id_campaign from 
 
 bot = Bot(id_campaign=args.id_campaign, multiple_ip=True, hide_output=False)
 
-delay = bot.get_spam_delay(bot)
+delay = bot.get_spam_delay()
 
 print(delay)
 
