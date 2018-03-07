@@ -34,7 +34,7 @@ DEVNULL = open(os.devnull, 'wb')
 waitDelay = randint(10, 40)
 
 logger.info("The bots will be started in %s minutes", waitDelay)
-time.sleep(waitDelay * 60)
+#time.sleep(waitDelay * 60)
 
 logger.info("Going to start bots for each user...")
 
@@ -45,7 +45,7 @@ for campaign in campaigns:
         "bash -c \"exec -a " + processName + " /usr/bin/python /home/instabot/run/dispatcher_v2.py -angie_campaign=" + str(
             campaign) + "\"", stdin=None, stdout=DEVNULL, stderr=DEVNULL, close_fds=True, shell=True)
 
-    pause=randint(4,10)
+    pause=randint(1,1)
     logger.info("schedule_bot: Going to sleep %s minutes",pause)
     time.sleep(pause * 60)
 
