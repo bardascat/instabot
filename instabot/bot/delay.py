@@ -52,7 +52,7 @@ def follow_delay(bot):
 
 def unfollow_delay(bot):
     sleep_time = randint(bot.unfollow_delay - 20, bot.unfollow_delay)
-    bot.info("unfollow_delay: Sleeping %s seconds, Max delay is: %s" % (sleep_time, bot.unfollow_delay))
+    bot.logger.info("unfollow_delay: Sleeping %s seconds, Max delay is: %s" % (sleep_time, bot.unfollow_delay))
     time.sleep(sleep_time)
     bot.last_unfollow = time.time()
 
