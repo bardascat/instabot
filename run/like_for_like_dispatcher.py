@@ -43,7 +43,7 @@ def startLikeForLikeProcess(id_campaign, bot_process_pid):
             processName)
 
     subprocess.Popen(
-        "bash -c \"exec -a " + processName + " /usr/bin/python /home/neo/work/instabot/run/like_for_like.py -angie_campaign=" + str(
+        "bash -c \"exec -a " + processName + " /usr/bin/python /home/instabot/run/like_for_like.py -angie_campaign=" + str(
             id_campaign) + " -bot_process_pid=" + str(bot_process_pid) + " \"", close_fds=True, shell=True)
     logger.info("startLikeForLikeProcess: Successfully started process for campaign %s", id_campaign)
 

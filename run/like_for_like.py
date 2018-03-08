@@ -81,7 +81,7 @@ finally:
             p.resume()
             bot.logger.info("Bot process %s is resumed", args.bot_process_pid)
         except ValueError:
-            print "Bot Process pid is not a vlaid number"
+            print "Bot Process pid is not a valid number"
             bot.logger.info("Bot process pid is not a valid number")
     else:
         bot.logger.info("There is no bot process to resume, going to exit !")
