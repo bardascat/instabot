@@ -598,7 +598,7 @@ class Bot(API):
                     self.logger.info("startLikeForLike: Error: Post %s was NOT liked",post['id_post'])
                 
             iteration=iteration+1
-            pause= randint(1,)
+            pause= randint(1,2)
             self.logger.info("startLikeForLike: Going to sleep %s seconds until proceeding to next post", pause)
             time.sleep(pause)
             
