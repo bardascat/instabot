@@ -91,6 +91,7 @@ class Bot(API):
                  comment_delay=60,
                  block_delay=30,
                  unblock_delay=30,
+                 logging_type=None,
                  stop_words=['sex', 'penis', 'fuck']):
         super(self.__class__, self).__init__()
 
@@ -167,7 +168,7 @@ class Bot(API):
         if comments_file:
             self.comments = read_list_from_file(comments_file)
 
-        self.initLogging(id_campaign)
+        self.initLogging(id_campaign, logging_type)
         self.logger.info('Instabot Started')
 
         self.id_campaign = id_campaign
@@ -566,55 +567,43 @@ class Bot(API):
         self.logger.info("canBotStart: All Good, no other bot instance is running for this campaign")
         return True
 
-    def getUsersForLikeForLike(self, id_campaign, likesAmount):
-
-        sqlLastUserProcessed = "SELECT * FROM `campaign_checkpoint` WHERE   date(timestamp) = CURDATE() and id_campaign=%s and _key='like_for_like_user_id'"
-        lastUserProcessed = api_db.fetchOne(sqlLastUserProcessed, id_campaign)
-
-        # start from beginning
-        if not lastUserProcessed:
-            lastUserProcessedId = 0
-        else:
-            lastUserProcessedId = lastUserProcessed['value']
-
-        self.logger.info("getAmountLikeForLike: Last user processed is: %s ", lastUserProcessedId)
-
-        usersToProcess = "select DISTINCT users.email,users.id_user, campaign.username as instagram_username from users join user_subscription on (users.id_user = user_subscription.id_user)  join campaign on (users.id_user = campaign.id_user) where (user_subscription.end_date>now() or user_subscription.end_date is null) and users.id_user>%s  and campaign.id_campaign!=%s order by users.id_user asc limit %s"
-
-        result = api_db.select(usersToProcess, lastUserProcessedId, id_campaign, likesAmount)
-
-        self.logger.info("getAmountLikeForLike: Found: users: %s", len(result))
-
-        return result
-
-    def startLikeForLike(self, likesAmount):
-        self.logger.info("bot.startLikeForLike: Started likeForLike operation. Likes to perform %s", likesAmount)
+    def startLikeForLike(self):
+        self.logger.info("bot.startLikeForLike: Started likeForLike operation for user %s.", self.web_application_id_user)
+        totalToLikeResult = api_db.fetchOne("select count(*) as total from user_post where id_post not in (select id_post from user_post_log where id_user=%s) and id_user!=%s",self.web_application_id_user,self.web_application_id_user)
+        self.logger.info("startLikeForLike: User has %s posts to like", totalToLikeResult['total'])
+        
         totalLiked = 0
-
-        result = self.getUsersForLikeForLike(self.id_campaign, likesAmount)
-
-        self.logger.info("bot.startLikeForLike: Received %s users to process", len(result))
-
-        if len(result) == 0:
-            self.logger.info("bot.startLikeForLike. NOTHING TO LIKE")
-            return 0
-
-        for user in result:
-            user['instagram_id_user'] = self.get_userid_from_username(user['instagram_username'])
-            user['full_name'] = user['instagram_username']
-            totalLiked = totalLiked + self.like_user(userObject=user, bot_operation="like_for_like",
-                                                     bot_operation_value=user['instagram_username'], amount=1)
-            # update in database the user id
-            api_db.updateCampaignChekpoint('like_for_like_user_id', user['id_user'], self.id_campaign)
-
-        self.logger.info("bot.startLikeForLike: END. Last user processed: %s, id_user: %s" % (
-            user['instagram_username'], user['id_user']))
-
-        self.logger.info("bot.startLikeForLike: END updated checkpoint for campaign: %s with last user: %s" % (
-            self.id_campaign, user['id_user']))
-        self.logger.info(
-            "bot.startLikeForLike: END. Total liked %s users from a total of %s users" % (totalLiked, likesAmount))
-
+        havePendingWork=True
+        securityBreak=100
+        iteration=0
+        
+        while havePendingWork == True and securityBreak>iteration:
+            self.logger.info("startLikeForLike: Iteration %s started...", iteration)
+            post = api_db.fetchOne("select * from user_post where id_post not in (select id_post from user_post_log where id_user=%s) and id_user!=%s order by id_post asc limit 1",self.web_application_id_user,self.web_application_id_user)
+            if post is None:
+                self.logger.info("startLikeForLike: There are no more posts to like, going to return !")
+                havePendingWork=False
+            else:
+                self.logger.info("startLikeForLike: Going to like id_post: %s", post['id_post'])
+                wasPostLiked = self.like(post['instagram_post_id'])
+                
+                #update the log
+                api_db.insert("INSERT INTO `user_post_log` (`id_post`, `id_user`, `like_timestamp`,`liked`) VALUES (%s, %s, CURRENT_TIMESTAMP, %s)", post['id_post'], self.web_application_id_user, wasPostLiked)
+                self.logger.info("startLikeForLike: user_post_log was updated")
+                
+                if wasPostLiked:
+                    totalLiked=totalLiked+1
+                    self.logger.info("startLikeForLike: Success: Post %s was liked !", post['id_post'])
+                else:
+                    self.logger.info("startLikeForLike: Error: Post %s was NOT liked",post['id_post'])
+                
+            iteration=iteration+1
+            pause= randint(1,)
+            self.logger.info("startLikeForLike: Going to sleep %s seconds until proceeding to next post", pause)
+            time.sleep(pause)
+            
+        
+        self.logger.info("startLikeForLike: DONE, total liked posts %s from a total of %s " % (totalLiked, totalToLikeResult['total']))
         return totalLiked
 
     def startStandardOperation(self, likesAmount, followAmount, operations):
