@@ -4,6 +4,7 @@ import logging
 import os
 from instabot.api import api_db
 import subprocess
+from random import randint
 
 logging.basicConfig(format='%(asctime)s %(message)s',filename='/home/instabot-log/like_for_like_dispatcher.log',level=logging.DEBUG)
 ch = logging.StreamHandler()
@@ -75,8 +76,9 @@ for user in result:
 	
 	startLikeForLike(user)
 	
-	logger.info("Going to wait 1 seconds before processing another user !")
-	time.sleep(1)
+	pause= randint(1,3)
+	logger.info("Going to wait %s seconds before processing another user !",pause)
+	time.sleep(pause)
 	
 	
 	

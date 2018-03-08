@@ -38,14 +38,14 @@ try:
     status = bot.login(username=campaign['username'], password=campaign['password'])
 
     if status != True:
-        bot.logger.info("dispatcher: Could not login, going to exit !")
+        bot.logger.info("like_for_like: Could not login, going to exit !")
         exit()
     
     bot.startLikeForLike()
     
    
 except SystemExit:
-    bot.logger.info("dispatcher_v2: SystemExit: The like for like process was successfully stopped")
+    bot.logger.info("like_for_like: SystemExit: The like for like     ocess was successfully stopped")
 except:
     exceptionDetail = traceback.format_exc()
     #print(exceptionDetail)
