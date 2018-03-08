@@ -35,7 +35,7 @@ try:
     campaign = api_db.fetchOne("select username,password,timestamp,id_campaign from campaign where id_campaign=%s",
                                args.angie_campaign)
     #bot.canBotStart(args.angie_campaign)
-    #todo change the log file(make a setter)
+   
     status = bot.login(username=campaign['username'], password=campaign['password'])
 
     if status != True:
