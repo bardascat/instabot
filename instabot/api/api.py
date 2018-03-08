@@ -61,8 +61,11 @@ class API(object):
         self.LastResponse = None
         self.total_requests = 0
 
-    def initLogging(self, id_campaign):
-        filename = time.strftime("%d.%m.%Y") + ".log"
+    def initLogging(self, id_campaign,logging_type):
+        if logging_type=="like_for_like":
+            filename = time.strftime("%d.%m.%Y") + "_l4l.log"
+        else:
+            filename = time.strftime("%d.%m.%Y") + ".log"
 
         # this is not working atm
         # logs_folder = os.environ['INSTABOT_LOGS_PATH']

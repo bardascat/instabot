@@ -28,7 +28,8 @@ try:
         max_likes_per_day=3100,  # default 1000
         like_delay=40,
         like_delay_if_bot_blocked=160,
-        multiple_ip=True
+        multiple_ip=True,
+        logging_type="like_for_like"
     )
 
     campaign = api_db.fetchOne("select username,password,timestamp,id_campaign from campaign where id_campaign=%s",

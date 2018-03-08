@@ -91,6 +91,7 @@ class Bot(API):
                  comment_delay=60,
                  block_delay=30,
                  unblock_delay=30,
+                 logging_type=None,
                  stop_words=['sex', 'penis', 'fuck']):
         super(self.__class__, self).__init__()
 
@@ -167,7 +168,7 @@ class Bot(API):
         if comments_file:
             self.comments = read_list_from_file(comments_file)
 
-        self.initLogging(id_campaign)
+        self.initLogging(id_campaign, logging_type)
         self.logger.info('Instabot Started')
 
         self.id_campaign = id_campaign
@@ -592,9 +593,12 @@ class Bot(API):
                 
                 if wasPostLiked:
                     totalLiked=totalLiked+1
+                    self.logger.info("startLikeForLike: Success: Post %s was liked !", post['id_post'])
+                else:
+                    self.logger.info("startLikeForLike: Error: Post %s was NOT liked",post['id_post'])
                 
             iteration=iteration+1
-            pause= randint(1,3)
+            pause= randint(1,)
             self.logger.info("startLikeForLike: Going to sleep %s seconds until proceeding to next post", pause)
             time.sleep(pause)
             
