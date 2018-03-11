@@ -87,7 +87,7 @@ for user in result:
     # check if bot is already running for this campaign
     startLikeForLike(user)
 
-    pause = randint(1, 5)
+    pause = randint(10, 25)
     logger.info("Going to wait %s seconds before processing another user !", pause)
     time.sleep(pause)
     logger.info("Done waiting, going to process next user")
