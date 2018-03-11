@@ -44,7 +44,7 @@ def startLikeForLikeProcess(id_campaign, bot_process_pid):
 
     subprocess.Popen(
         "bash -c \"exec -a " + processName + " /usr/bin/python /home/instabot/run/like_for_like.py -angie_campaign=" + str(
-            id_campaign) + " -bot_process_pid=" + str(bot_process_pid) + " \"", close_fds=True, shell=True)
+            id_campaign) + " -bot_process_pid=" + str(bot_process_pid) + " \"", stdin=None, stdout=DEVNULL, stderr=DEVNULL, close_fds=True, shell=True)
     logger.info("startLikeForLikeProcess: Successfully started process for campaign %s", id_campaign)
 
 
@@ -77,7 +77,7 @@ def startLikeForLike(user):
 
 # select users that have an active subscription, and have pending posts to like
 result = api_db.select(
-    "select users.id_user,email,username,campaign.password,campaign.id_campaign from users  join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and (select count(*) from user_post_log where id_user=users.id_user)<(select count(*) from user_post) and users.id_user=1");
+    "select users.id_user,email,username,campaign.password,campaign.id_campaign from users  join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and (select count(*) from user_post_log where id_user=users.id_user)<(select count(*) from user_post) and campaign.active=1");
 # logger.info(result)
 logger.info("Found %s users with pending work", len(result))
 for user in result:
@@ -86,7 +86,7 @@ for user in result:
     # check if bot is already running for this campaign
     startLikeForLike(user)
 
-    pause = randint(1, 3)
+    pause = randint(1, 5)
     logger.info("Going to wait %s seconds before processing another user !", pause)
     time.sleep(pause)
     logger.info("Done waiting, going to process next user")
