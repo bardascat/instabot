@@ -5,6 +5,7 @@ import os
 from instabot.api import api_db
 import subprocess
 from random import randint
+import signal
 
 logging.basicConfig(format='%(asctime)s %(message)s', filename='/home/instabot-log/like_for_like_dispatcher.log',
                     level=logging.DEBUG)
@@ -22,7 +23,7 @@ DEVNULL = open(os.devnull, 'wb')
 def pauseProcess(pid):
     logger.info("pauseProcess: pausing process: %s", pid)
     p = psutil.Process(pid)
-    p.suspend()
+    p.send_signal(sig=signal.SIGTSTP)
     logger.info("pauseProcess: process %s is paused", pid)
 
 

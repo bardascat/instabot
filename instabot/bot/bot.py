@@ -4,6 +4,7 @@ import signal
 import math
 import os
 import time
+import psutil
 from ..api import API
 from ..api import api_db
 from random import randint
@@ -186,6 +187,14 @@ class Bot(API):
             import pkg_resources
         return next((p.version for p in pkg_resources.working_set if p.project_name.lower() == 'instabot'), "No match")
 
+    def pauseBotHandler(self,*args):
+        self.logger.info("THIS BOT PROCESS IS PAUSED! PID %s", os.getpid())
+        p = psutil.Process(os.getpid())
+        p.suspend()
+
+    def resumeBotHandler(self,*args):
+        self.logger.info("THIS BOT PROCESS IS RESUMED...")
+
     def logout(self, *args):
 
         if self.isLoggedIn:
@@ -209,6 +218,9 @@ class Bot(API):
         self.prepare()
         signal.signal(signal.SIGTERM, self.logout)
         signal.signal(signal.SIGINT, self.logout)
+        signal.signal(signal.SIGTSTP, self.pauseBotHandler)
+        signal.signal(signal.SIGCONT, self.resumeBotHandler)
+
         atexit.register(self.logout)
         return status
 
