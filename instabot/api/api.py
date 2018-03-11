@@ -61,8 +61,8 @@ class API(object):
         self.LastResponse = None
         self.total_requests = 0
 
-    def initLogging(self, id_campaign,logging_type):
-        if logging_type=="like_for_like":
+    def initLogging(self, id_campaign,bot_type):
+        if bot_type=="like_for_like":
             filename = time.strftime("%d.%m.%Y") + "_l4l.log"
         else:
             filename = time.strftime("%d.%m.%Y") + ".log"
@@ -224,6 +224,12 @@ class API(object):
                 responseObject = self.loadJson(response.text)
                 if 'spam' in responseObject:
 
+                    if self.bot_type=="like_for_like":
+                        self.logger.warning("sendRequest: BOT IS BLOCKED. Going to exit like for like process. Reponse %s", responseObject)
+                        currentOperation = self.currentOperation if hasattr(self, "currentOperation") else None
+                        self.logApiError(responseInfo, currentOperation, config.API_URL, endpoint, response.status_code,details)
+                        raise Exception("sendRequest: SPAM: bot is blocked, going to exit")
+
                     sleep_minutes = self.get_spam_delay()
                     self.like_delay = self.like_delay_if_bot_blocked
                     self.follow_delay = self.follow_delay_if_bot_blocked
@@ -234,13 +240,8 @@ class API(object):
                     details = "spam"
                     time.sleep(sleep_minutes * 60)
                 if 'error_type' in responseObject:
-                    # todo throw if invalid password - code duplication for loggin because of the throw
-                    # todo fix this spagheti code
                     currentOperation = self.currentOperation if hasattr(self, "currentOperation") else None
-                    insert(
-                        "insert into instagram_log (id_user,log,operation,request,http_status,details,timestamp) values (%s,%s,%s,%s,%s,%s,now())",
-                        self.web_application_id_user, responseInfo, currentOperation, config.API_URL + endpoint,
-                        str(response.status_code), details)
+                    self.logApiError(responseInfo, currentOperation, config.API_URL, endpoint,response.status_code, details)
 
                     if responseObject['error_type'] == 'checkpoint_challenge_required':
                         self.logger.warning("sendRequest: Instagram requries phone verification")
@@ -267,18 +268,11 @@ class API(object):
             elif response.status_code == 429:
                 sleep_minutes = randint(6, 8)
                 details = "That means too many requests"
-                self.like_delay = self.like_delay_if_bot_blocked
-                self.logger.warning("That means 'too many requests'. "
-                                    "I'll go to sleep for %d minutes. Like delay increased to %s" % (
-                                    sleep_minutes, self.like_delay))
+                self.logger.warning("That means 'too many requests'. ""I'll go to sleep for %d minutes." % (sleep_minutes))
                 time.sleep(sleep_minutes * 60)
 
             currentOperation = self.currentOperation if hasattr(self, "currentOperation") else None
-
-            insert(
-                "insert into instagram_log (id_user,log,operation,request,http_status,details,timestamp) values (%s,%s,%s,%s,%s,%s,now())",
-                self.web_application_id_user, responseInfo, currentOperation, config.API_URL + endpoint,
-                str(response.status_code), details)
+            self.logApiError(responseInfo, currentOperation, config.API_URL, endpoint, response.status_code, details)
 
             # for debugging
             # try:
@@ -288,6 +282,12 @@ class API(object):
             #    pass
             # self.LastResponse=response
             return False
+
+    def logApiError(self, responseInfo, currentOperation, apiUrl, endpoint,statusCode, details):
+        insert(
+            "insert into instagram_log (id_user,log,operation,request,http_status,details,timestamp) values (%s,%s,%s,%s,%s,%s,now())",
+            self.web_application_id_user, responseInfo, currentOperation, apiUrl + endpoint,
+            str(statusCode), details)
 
     def syncFeatures(self):
         data = json.dumps({

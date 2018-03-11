@@ -44,7 +44,7 @@ try:
         like_delay=40,
         like_delay_if_bot_blocked=160,
         multiple_ip=True,
-        logging_type="like_for_like"
+        bot_type="like_for_like"
     )
 
     campaign = api_db.fetchOne("select username,password,timestamp,id_campaign from campaign where id_campaign=%s",

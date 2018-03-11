@@ -91,7 +91,7 @@ class Bot(API):
                  comment_delay=60,
                  block_delay=30,
                  unblock_delay=30,
-                 logging_type=None,
+                 bot_type=None,
                  stop_words=['sex', 'penis', 'fuck']):
         super(self.__class__, self).__init__()
 
@@ -153,6 +153,7 @@ class Bot(API):
         self.multiple_ip = multiple_ip
         self.is_bot_account = is_bot_account
         self.bot_ip = None
+        self.bot_type = bot_type
         self.hide_output = hide_output
 
         # white and blacklists
@@ -168,7 +169,7 @@ class Bot(API):
         if comments_file:
             self.comments = read_list_from_file(comments_file)
 
-        self.initLogging(id_campaign, logging_type)
+        self.initLogging(id_campaign, bot_type)
         self.logger.info('Instabot Started')
 
         self.id_campaign = id_campaign
