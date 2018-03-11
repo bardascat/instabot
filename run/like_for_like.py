@@ -76,7 +76,7 @@ finally:
     print("trying to resume bot process: pid is " + args.bot_process_pid)
     if args.bot_process_pid is not None and args.bot_process_pid is not False:
         try:
-            pid = int(float())
+            pid = int(float(args.bot_process_pid))
             p = psutil.Process(pid)
             p.resume()
             bot.logger.info("Bot process %s is resumed", args.bot_process_pid)
