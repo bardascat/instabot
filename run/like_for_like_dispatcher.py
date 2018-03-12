@@ -89,17 +89,16 @@ def startLikeForLike(user):
         startLikeForLikeProcess(user['id_campaign'], pid)
 
 
-logger.info("started")
+logger.info("************* Like for like dispatcher STARTED ! *****************")
+logger.info("Checking if process is already started...")
 processName = "angie_like_for_like_dispatcher"
 pid = canProcessStart(processName)
 if pid is False:
     logger.info("Error:There is already a process with name %s started", processName)
     raise Exception("Error:There is already a process with name "+processName+" started")
 else:
-    logger.info("all good")
+    logger.info("All good ! There is no other process running !")
 
-time.sleep(10000*60)
-exit()
 
 # select users that have an active subscription, and have pending posts to like
 result = api_db.select(
@@ -117,4 +116,4 @@ for user in result:
     time.sleep(pause)
     logger.info("Done waiting, going to process next user")
 
-logger.info("Done executing the script")
+logger.info("Done executing the script.. exiting")
