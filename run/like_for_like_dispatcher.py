@@ -92,9 +92,11 @@ def startLikeForLike(user):
 logger.info("started")
 processName = "angie_like_for_like_dispatcher"
 pid = canProcessStart(processName)
-if pid is not None:
+if pid is False:
     logger.info("Error:There is already a process with name %s started", processName)
     raise Exception("Error:There is already a process with name "+processName+" started")
+else:
+    logger.info("all good")
 
 time.sleep(10000*60)
 exit()
