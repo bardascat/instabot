@@ -631,13 +631,11 @@ class Bot(API):
                 self.logger.info("startScanUserFeed: Pause for %s seconds until processing next user...", pause)
                 time.sleep(pause)
                 self.logger.info("------------------done waiting... going to process next user----------------")
-                
-                
-                
-                pause= randint(8,13)
-                self.logger.info("startScanUserFeed: Iteration %s ended, going to sleep for %s minutes" % (iteration, pause))
-                iteration=iteration+1
-                time.sleep(pause * 60)
+
+            pause= randint(8,13)
+            self.logger.info("startScanUserFeed: Iteration %s ended, going to sleep for %s minutes" % (iteration, pause))
+            iteration=iteration+1
+            time.sleep(pause * 60)
             
         
         self.logger.info("startScanUserFeed: Done scanning users feed, going to exit !")
