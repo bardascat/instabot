@@ -76,6 +76,16 @@ def startLikeForLike(user):
         startLikeForLikeProcess(user['id_campaign'], pid)
 
 
+logger.info("started")
+processName = "like_for_like_dispatcher"
+pid = findProcessPid(processName)
+if pid is not None:
+    logger.info("Error:There is already a process with name %s started", processName)
+    raise Exception("Error:There is already a process with name "+processName+" started")
+
+time.sleep(10000*60)
+exit()
+
 # select users that have an active subscription, and have pending posts to like
 result = api_db.select(
     "select users.id_user,email,username,campaign.password,campaign.id_campaign from users  join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and (select count(*) from user_post_log where id_user=users.id_user)<(select count(*) from user_post) and campaign.active=1");
