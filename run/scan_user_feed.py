@@ -45,7 +45,7 @@ try:
         bot_type="scan_user_feed"
     )
 
-    processName = "angie_scan_user_feed" + str(campaign['id_campaign'])
+    processName = "angie_scan_user_feed"
     bot.logger.info("angie_scan_user_feed: checking if there is already a process started with name %s", processName)
     canStart = canProcessStart(processName)
 

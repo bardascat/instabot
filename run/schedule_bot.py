@@ -31,7 +31,7 @@ logger.info("schedule_bot: Starting the scheduler script")
 logger.info("schedule_bot: Received the following campaigns %s", campaigns)
 
 DEVNULL = open(os.devnull, 'wb')
-waitDelay = randint(10, 40)
+waitDelay = randint(0, 1)
 
 logger.info("The bots will be started in %s minutes", waitDelay)
 time.sleep(waitDelay * 60)
