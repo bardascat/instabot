@@ -61,6 +61,19 @@ def findProcessPid(processName):
     logger.info("getProcessPid: Did not find any process for name  %s", processName)
     return False
 
+def canProcessStart(processName):
+    timesStarted=0
+
+    for p in psutil.process_iter():
+        cmdline = p.cmdline()
+        if len(cmdline) > 1:
+            if processName in cmdline[0]:
+                timesStarted=timesStarted+1
+
+    if timesStarted>1:
+        return False
+    else:
+        return True
 
 def startLikeForLike(user):
     pid = findProcessPid('angie_idc' + str(user['id_campaign']))
@@ -78,7 +91,7 @@ def startLikeForLike(user):
 
 logger.info("started")
 processName = "angie_like_for_like_dispatcher"
-pid = findProcessPid(processName)
+pid = canProcessStart(processName)
 if pid is not None:
     logger.info("Error:There is already a process with name %s started", processName)
     raise Exception("Error:There is already a process with name "+processName+" started")
