@@ -64,7 +64,7 @@ class API(object):
     def initLogging(self, id_campaign,bot_type):
         if bot_type=="like_for_like":
             filename = time.strftime("%d.%m.%Y") + "_l4l.log"
-        if bot_type=="scan_user_feed":
+        elif bot_type=="scan_user_feed":
             filename = time.strftime("%d.%m.%Y") + "_scan_feed.log"
         else:
             filename = time.strftime("%d.%m.%Y") + ".log"
