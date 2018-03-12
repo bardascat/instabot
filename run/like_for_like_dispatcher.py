@@ -88,7 +88,7 @@ def startLikeForLike(user):
         pauseProcess(pid)
         pause = randint(1,2)
         time.sleep(pause)
-        logger.info("startLikeForLike: Sleeping %s because we just paused the bot process !", pause)
+        logger.info("startLikeForLike: Sleeping %s seconds because we just paused the bot process !", pause)
         startLikeForLikeProcess(user['id_campaign'], pid)
 
 
