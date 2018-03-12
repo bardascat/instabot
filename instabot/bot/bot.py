@@ -9,7 +9,7 @@ from ..api import API
 from ..api import api_db
 from random import randint
 
-from .bot_get import get_media_owner, get_your_medias, get_user_medias
+from .bot_get import get_media_owner, get_your_medias, get_user_medias, get_recent_user_medias
 from .bot_get import get_timeline_medias, get_hashtag_medias, get_user_info, get_location_medias
 from .bot_get import get_geotag_medias, get_timeline_users, get_hashtag_users
 from .bot_get import get_media_commenters, get_userid_from_username, get_username_from_userid
@@ -213,8 +213,10 @@ class Bot(API):
         if self.proxy:
             args['proxy'] = self.proxy
         status = super(self.__class__, self).login(**args)
-        # if status==False:
-        #    exit("Could not login to instagram !")
+        if status is not False:
+            #set instagram username
+            self.logger.info("login: Going to set the real instagram username:%s", self.LastJson['logged_in_user']['username'])
+            api_db.insert("update campaign set instagram_username=%s where id_campaign=%s",self.LastJson['logged_in_user']['username'], self.id_campaign)
         self.prepare()
         signal.signal(signal.SIGTERM, self.logout)
         signal.signal(signal.SIGINT, self.logout)
@@ -274,6 +276,9 @@ class Bot(API):
 
     def get_user_medias(self, user_id, filtration=True, is_comment=False):
         return get_user_medias(self, user_id, filtration, is_comment)
+        
+    def get_recent_user_medias(self,instagram_user_id, recentThan):
+        return get_recent_user_medias(self, instagram_user_id, recentThan)
 
     def get_total_user_medias(self, user_id):
         return get_total_user_medias(self, user_id)
@@ -579,6 +584,63 @@ class Bot(API):
 
         self.logger.info("canBotStart: All Good, no other bot instance is running for this campaign")
         return True
+        
+    def startScanUserFeed(self):
+        self.logger.info("startScanUserFeed: Started !")
+        iteration=0
+        while True:
+            result = api_db.select("select distinct users.id_user,email,instagram_username,campaign.id_campaign from users join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user) where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 order by rand()");
+            
+            self.logger.info("startScanUserFeed:Found %s users", len(result))
+            
+            for user in result:
+                self.logger.info("---------------------Going to scan user's %s feed--------------------------", user['email'])
+                
+                if user['instagram_username'] is None:
+                    self.logger.warning("startScanUserFeed: Error: Instagram username is %s for user %s. Going to skip this user" %(user['instagram_username'], user['email']))
+                    continue
+                
+                instagramUserId=self.get_userid_from_username(user['instagram_username'])
+                self.logger.info("startScanUserFeed:  %s has instagram id %s" % (user['instagram_username'], instagramUserId))
+                
+                if instagramUserId is None:
+                    self.logger.warning("startScanUserFeed:  Error: Userid is none, going to skip this user...")
+                    continue
+                
+                self.logger.info("startScanUserFeed: Getting last post inserted in database for user %s", user['email'])
+                lastPost=api_db.fetchOne("select * from user_post where id_user=%s order by timestamp DESC limit 1", user['id_user'])
+                
+                self.logger.info("startScanUserFeed: Last post is %s", lastPost)
+                
+                if lastPost is None:
+                    recentThan= datetime.datetime(2018,03,12,0,0,0)
+                    self.logger.info("startScanUserFeed: Last post is none, going to set recentThan date to %s", recentThan)
+                else:
+                    recentThan = lastPost['timestamp']
+                    self.logger.info("startScanUserFeed: Last post is NOT NONE, going to set recentThan date to %s", recentThan)
+                
+                medias = self.get_recent_user_medias(instagramUserId, recentThan)
+                self.logger.info("startScanUserFeed:  Found %s medias for user %s, going to save them in database." % (len(medias), user['email']))
+                if len(medias)>0:
+                    for media in medias:
+                        taken_at = datetime.datetime.fromtimestamp(int(media['taken_at']))
+                        api_db.insert("insert into user_post (id_campaign,id_user,instagram_post_id,timestamp) values (%s, %s, %s, %s)", user['id_campaign'], user['id_user'], media['pk'], taken_at)
+                    self.logger.info("startScanUserFeed: All posts were inserted in database.")
+                
+                pause = randint(2,3)
+                self.logger.info("startScanUserFeed: Pause for %s seconds until processing next user...", pause)
+                time.sleep(pause)
+                self.logger.info("------------------done waiting... going to process next user----------------")
+                
+                
+                
+                pause= randint(8,13)
+                self.logger.info("startScanUserFeed: Iteration %s ended, going to sleep for %s minutes" % (iteration, pause))
+                iteration=iteration+1
+                time.sleep(pause * 60)
+            
+        
+        self.logger.info("startScanUserFeed: Done scanning users feed, going to exit !")
 
     def startLikeForLike(self):
         self.logger.info("bot.startLikeForLike: Started likeForLike operation for user %s.", self.web_application_id_user)

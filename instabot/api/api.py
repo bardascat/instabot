@@ -64,6 +64,8 @@ class API(object):
     def initLogging(self, id_campaign,bot_type):
         if bot_type=="like_for_like":
             filename = time.strftime("%d.%m.%Y") + "_l4l.log"
+        if bot_type=="scan_user_feed":
+            filename = time.strftime("%d.%m.%Y") + "_scan_feed.log"
         else:
             filename = time.strftime("%d.%m.%Y") + ".log"
 
@@ -562,7 +564,7 @@ class API(object):
 
         self.logger.info("api: Received %s items from user %s feed" % (items, usernameId))
 
-        sleep_time = randint(1, 3)
+        sleep_time = randint(1, 2)
         self.logger.info("api: Sleeping %s seconds" % sleep_time)
         time.sleep(sleep_time)
 

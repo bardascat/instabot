@@ -9,6 +9,7 @@ from ..api import api_db
 from . import delay
 from random import randint
 import time
+import datetime
 
 
 def get_media_owner(self, media_id):
@@ -51,11 +52,41 @@ def get_user_medias(self, user_id, filtration=True, is_comment=False):
     
     if 'status' in self.LastJson:
       if self.LastJson["status"] == 'fail':
-          self.logger.warning("This is a closed account.")
+          self.logger.warning("This is a closed account. lastJson: %s", self.LastJson)
           return []
     if 'items'not in self.LastJson:
+        self.logger.info("get_user_medias: the response did not contain any items. LastJson: %s", self.LastJson)
         return []
-    return self.filter_medias(self.LastJson["items"], filtration, is_comment=is_comment)
+    
+    if filtration==False:
+        return self.LastJson["items"]
+    else:
+        return self.filter_medias(self.LastJson["items"], filtration, is_comment=is_comment)
+
+def get_recent_user_medias(self, instagram_user_id, recentThan):
+    self.logger.info("get_recent_user_medias: Started for user_id %s", instagram_user_id)
+    medias = self.get_user_medias(user_id=instagram_user_id, filtration=False)
+    
+    if len(medias)==0:
+        self.logger.info("get_recent_user_medias: 0 medias received for user %s. Going to return", user_id)
+        return 0
+        
+    self.logger.info("get_recent_user_medias: Going to validate %d posts recent than %s" % (len(medias), recentThan))
+    validatedMedias=[]
+    
+    for media in medias:
+        taken_at = datetime.datetime.fromtimestamp(int(media['taken_at']))
+    
+        #self.logger.info("get_recent_user_medias: Going to validate post id %s, taken at %s" % (media['pk'], taken_at))
+        if taken_at>recentThan:
+            self.logger.info("get_recent_user_medias: Post %s is VALID: taken_at: %s, recentThan %s" % (media['pk'], taken_at, recentThan))
+            validatedMedias.append(media)
+        else:
+            self.logger.info("get_recent_user_medias: Post %s is INVALID: taken_at: %s, recentThan %s" % (media['pk'], taken_at, recentThan))
+            
+    self.logger.info("get_recent_user_medias: Found %s validated medias. Going to return", len(validatedMedias))
+    
+    return validatedMedias
 
 
 def get_total_user_medias(self, user_id):
