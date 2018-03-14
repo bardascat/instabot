@@ -46,7 +46,7 @@ try:
         multiple_ip=True,
         bot_type="like_for_like"
     )
-
+ 
     campaign = api_db.fetchOne("select username,password,timestamp,id_campaign from campaign where id_campaign=%s",
                                args.angie_campaign)
 
@@ -82,6 +82,6 @@ finally:
             bot.logger.info("Bot process %s is resumed", args.bot_process_pid)
         except ValueError:
             print "Bot Process pid is not a valid number"
-            bot.logger.info("Bot process pid is not a valid number")
+            bot.logger.info("Bot process pid %s is not a valid number", args.bot_process_pid)
     else:
         bot.logger.info("There is no bot process to resume, going to exit !")

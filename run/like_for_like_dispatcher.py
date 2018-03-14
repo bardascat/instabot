@@ -102,10 +102,10 @@ if pid is False:
 else:
     logger.info("All good ! There is no other process running !")
 
-
-# select users that have an active subscription, and have pending posts to like
+exit("done")
+# select users that have an active subscription, and have pending posts to like.
 result = api_db.select(
-    "select users.id_user,email,username,campaign.password,campaign.id_campaign from users  join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and (select count(*) from user_post_log where id_user=users.id_user)<(select count(*) from user_post) and campaign.active=1");
+    "select users.id_user,email,username,campaign.password,campaign.id_campaign from users  join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and (select count(*) from user_post_log where id_user=users.id_user)<(select count(*) from user_post where id_user!=users.id_user) and campaign.active=1");
 # logger.info(result)
 logger.info("Found %s users with pending work", len(result))
 for user in result:

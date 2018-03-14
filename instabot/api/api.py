@@ -10,6 +10,8 @@ import time
 from random import randint
 from tqdm import tqdm
 import os
+import io 
+import traceback 
 from . import config
 from .api_photo import configurePhoto
 from .api_photo import uploadPhoto
@@ -33,7 +35,7 @@ from .api_profile import setNameAndPhone
 
 from .prepare import get_credentials
 from .prepare import delete_credentials
-from .api_db import insert, getBotIp
+from .api_db import insert, getBotIp, fetchOne
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.poolmanager import PoolManager
 import socket
@@ -99,25 +101,32 @@ class API(object):
         self.password = password
         self.uuid = self.generateUUID(True)
 
+    def canUserLogin(self, id_campaign):
+        blockLimit=12
+        self.logger.info("canUserLogin: Checking if user with campaign: %s can loggin...", id_campaign)
+        
+        result = fetchOne("select count(*) as total_blocks from instagram_log join campaign using(id_user) where date(instagram_log.timestamp)=CURDATE() and id_campaign=%s and (details='spam' or details='sentry_block')", id_campaign)
+        if result['total_blocks']>=blockLimit:
+            self.logger.info("canUserLogin: Error: User cannot login because it was blocked more than %s times today. Actual block %s" % (blockLimit, result['total_blocks']))
+            return False
+        else:
+            self.logger.info("canUserLogin: SUCCESS, User Can login ! Today it was blocked %s times. Max limit is %s blocks." % (result['total_blocks'], blockLimit))
+            return True
+        
+        
     def login(self, username=None, password=None, force=False, proxy=None):
         self.logger.info("login: Trying to login user %s with custom IP: %s, is bot account %s" % (
         username, self.multiple_ip, self.is_bot_account))
-        if password is None:
-            username, password = get_credentials(username=username)
-
-        m = hashlib.md5()
-        m.update(username.encode('utf-8') + password.encode('utf-8'))
-        self.proxy = proxy
-        self.device_id = self.generateDeviceId(m.hexdigest())
-        self.setUser(username, password)
-
+        
+        if self.canUserLogin(self.id_campaign)==False:
+            raise Exception("login: User cannot login anymore today since it reached tha maximum blocks per day !")
+            
+     
         if (not self.isLoggedIn or force):
             self.session = requests.Session()
             if self.multiple_ip is not None and self.multiple_ip is not False:
-
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.bot_ip = getBotIp(self, self.web_application_id_user, self.id_campaign, self.is_bot_account)
-
                 if self.bot_ip['type'] == "proxy":
                     self.logger.info("login: We are going to use a proxy: %s", self.bot_ip['ip'])
                     proxies = {
@@ -133,34 +142,109 @@ class API(object):
 
             response=self.session.get('https://api.ipify.org?format=json')
             self.logger.info("Proxy test respone %s",response.text)
-
-            if (
-            self.SendRequest('si/fetch_headers/?challenge_type=signup&guid=' + self.generateUUID(False), None, True)):
-
-                data = {'phone_id': self.generateUUID(True),
-                        '_csrftoken': self.LastResponse.cookies['csrftoken'],
-                        'username': self.username,
-                        'guid': self.uuid,
-                        'device_id': self.device_id,
-                        'password': self.password,
-                        'login_attempt_count': '0'}
-
-                if self.SendRequest('accounts/login/', self.generateSignature(json.dumps(data)), True):
-                    self.isLoggedIn = True
-                    self.user_id = self.LastJson["logged_in_user"]["pk"]
-                    self.rank_token = "%s_%s" % (self.user_id, self.uuid)
-                    self.token = self.LastResponse.cookies["csrftoken"]
-
-                    self.logger.info("login: Login success as %s!" % self.username)
-                    return True
-                else:
-                    self.logger.info("login: Incorrect credentials or instagram verification required !")
-                    delete_credentials()
-                    return False
+            
+            #todo: Probably it is not a good idea to keep the same cookie forever. The regular bot should recreat the cookie each morning !
+            if self.loginFromStorage(username, password)!=True:
+                return self.newLogin(username,password,proxy)
             else:
-                self.logger.info("login: Could not login user %s !", username)
+                return True
+            
+        
+    
+    def loginFromStorage(self, username, password):
+        self.logger.info("loginFromStorage: Trying to login from storage...")
+        
+        try:
+            with open('/home/instabot-log/campaign/'+self.id_campaign+'/user-identity.json') as json_data:
+                userIdentity = json.load(json_data)
+                #self.logger.info("canLoginFromStorage: userIdentity:%s",userIdentity)
+                 
+                self.session.cookies.set(name="csrftoken",value=userIdentity['csrftoken'],domain="i.instagram.com",path="/")
+                self.session.cookies.set(name="ds_user",value=userIdentity['ds_user'],domain="i.instagram.com",path="/")
+                self.session.cookies.set(name="ds_user_id",value=userIdentity['ds_user_id'],domain="i.instagram.com",path="/")
+                self.session.cookies.set(name="mid",value=userIdentity['mid'],domain="i.instagram.com",path="/")
+                self.session.cookies.set(name="rur",value=userIdentity['rur'],domain="i.instagram.com",path="/")
+                self.session.cookies.set(name="sessionid",value=userIdentity['sessionid'],domain="i.instagram.com",path="/")
+                self.session.cookies.set(name="social_hash_bucket_id",value=userIdentity['social_hash_bucket_id'],domain="i.instagram.com",path="/")
+                self.session.cookies.set(name="urlgen",value=userIdentity['urlgen'],domain="i.instagram.com",path="/")
+                self.device_id=userIdentity['device_id']
+                self.uuid=userIdentity['uuid']
+                self.user_id = userIdentity['user']['pk']
+                self.rank_token = userIdentity['rank_token']
+                self.token = userIdentity['token']
+                self.isLoggedIn = True
+                self.username = username
+                self.password = password
+                
+                self.get_timeline_medias(amount=1)
+                self.logger.info("loginFromStorage: ****************** SUCCESS - USER LOGGED IN FROM STORAGE ************************")
+                return True
+        except:
+                exceptionDetail = traceback.format_exc()
+                self.logger.info("loginFromStorage: ************ Cannot login from storage. Error: %s:",exceptionDetail)
                 return False
+        return False
+        
+        
+  
+    def newLogin(self, username,password, proxy):
+        self.logger.info("newLogin: trying a new login...")
+        
+        m = hashlib.md5()
+        m.update(username.encode('utf-8') + password.encode('utf-8'))
+        self.proxy = proxy
+        self.device_id = self.generateDeviceId(m.hexdigest())
+        self.setUser(username, password)
+        
+        if (self.SendRequest('si/fetch_headers/?challenge_type=signup&guid=' + self.generateUUID(False), None, True)):
 
+            data = {'phone_id': self.generateUUID(True),
+            '_csrftoken': self.LastResponse.cookies['csrftoken'],
+            'username': self.username,
+            'guid': self.uuid,
+            'device_id': self.device_id,
+            'password': self.password,
+            'login_attempt_count': '0'}
+
+            if self.SendRequest('accounts/login/', self.generateSignature(json.dumps(data)), True):
+                userIdentity={}
+                self.isLoggedIn = True 
+                    
+                self.user_id = self.LastJson["logged_in_user"]["pk"]
+                self.rank_token = "%s_%s" % (self.user_id, self.uuid)
+                self.token = self.LastResponse.cookies["csrftoken"]
+                self.logger.info("newLogin: ****************** SUCCESS - USER PERFORMED A NEW LOGIN as %s ************************", self.username)
+                
+                
+                #set instagram username
+                self.logger.info("login: Goin g to set the real instagram username:%s", self.LastJson["logged_in_user"]['username'])
+                insert("update campaign set instagram_username=%s where id_campaign=%s",self.LastJson['logged_in_user']['username'], self.id_campaign)
+            
+                userIdentity['uuid']=self.uuid
+                userIdentity['device_id']=self.device_id
+                userIdentity['user'] = self.LastJson["logged_in_user"]
+                userIdentity['token'] = self.LastResponse.cookies["csrftoken"]
+                userIdentity['csrftoken'] = self.session.cookies.get("csrftoken")
+                userIdentity['rank_token'] = self.rank_token
+                userIdentity['ds_user'] = self.session.cookies.get("ds_user")
+                userIdentity['ds_user_id'] = self.session.cookies.get("ds_user_id")
+                userIdentity['mid'] = self.session.cookies.get("mid")
+                userIdentity['rur'] = self.session.cookies.get("rur")
+                userIdentity['sessionid'] = self.session.cookies.get("sessionid")
+                userIdentity['social_hash_bucket_id'] = self.session.cookies.get("social_hash_bucket_id")
+                userIdentity['urlgen'] = self.session.cookies.get("urlgen")
+                
+                with io.open('/home/instabot-log/campaign/'+self.id_campaign+'/user-identity.json', 'w', encoding='utf-8') as f:
+                    f.write(json.dumps(userIdentity, ensure_ascii=False))
+                     
+                return True
+            else:
+                self.logger.info("login: Incorrect credentials or instagram verification required !")
+                return False
+        else:
+            self.logger.info("login: Could not login user %s !", username)
+            return False
+                
     def loadJson(self, value):
         try:
             r = json.loads(value)
@@ -225,7 +309,7 @@ class API(object):
             if response.status_code == 400:
                 responseObject = self.loadJson(response.text)
                 if 'spam' in responseObject:
-
+                    details = "spam"
                     if self.bot_type=="like_for_like":
                         self.logger.warning("sendRequest: BOT IS BLOCKED. Going to exit like for like process. Reponse %s", responseObject)
                         currentOperation = self.currentOperation if hasattr(self, "currentOperation") else None
@@ -239,12 +323,25 @@ class API(object):
                         "sendRequest: BOT IS BLOCKED, going to sleep %s minutes. The like delay was increased to %s seconds, and follow delay to %s" % (
                         sleep_minutes, self.like_delay, self.follow_delay))
 
-                    details = "spam"
                     time.sleep(sleep_minutes * 60)
+                
+                if 'message' in responseObject: 
+                    details="login_required"
+                    if responseObject['message']=="login_required":
+                        currentOperation = self.currentOperation if hasattr(self, "currentOperation") else None
+                        self.logApiError(responseInfo, currentOperation, config.API_URL, endpoint, response.status_code,details)
+                        raise Exception("sendRequest: The user is not logged in")
                 if 'error_type' in responseObject:
                     currentOperation = self.currentOperation if hasattr(self, "currentOperation") else None
+                    
+                    
+                    if responseObject['error_type'] == 'sentry_block':
+                        self.logger.warning("sendRequest: ********** FATAL ERROR ************* sentry_block")
+                        self.logApiError(responseInfo, currentOperation, config.API_URL, endpoint,response.status_code, "sentry_block")
+                        raise Exception("sendRequest: ********** FATAL ERROR ************* sentry_block")
+                    
                     self.logApiError(responseInfo, currentOperation, config.API_URL, endpoint,response.status_code, details)
-
+                    
                     if responseObject['error_type'] == 'checkpoint_challenge_required':
                         self.logger.warning("sendRequest: Instagram requries phone verification")
                         self.notifyUserToVerifyInstagramAccount()

@@ -211,12 +211,8 @@ class Bot(API):
 
     def login(self, **args):
         if self.proxy:
-            args['proxy'] = self.proxy
+            args['proxy'] = self.proxy 
         status = super(self.__class__, self).login(**args)
-        if status is not False:
-            #set instagram username
-            self.logger.info("login: Going to set the real instagram username:%s", self.LastJson['logged_in_user']['username'])
-            api_db.insert("update campaign set instagram_username=%s where id_campaign=%s",self.LastJson['logged_in_user']['username'], self.id_campaign)
         self.prepare()
         signal.signal(signal.SIGTERM, self.logout)
         signal.signal(signal.SIGINT, self.logout)
