@@ -326,8 +326,9 @@ class API(object):
                     time.sleep(sleep_minutes * 60)
                 
                 if 'message' in responseObject: 
-                    details="login_required"
+                    
                     if responseObject['message']=="login_required":
+                        details="login_required"
                         currentOperation = self.currentOperation if hasattr(self, "currentOperation") else None
                         self.logApiError(responseInfo, currentOperation, config.API_URL, endpoint, response.status_code,details)
                         raise Exception("sendRequest: The user is not logged in")
@@ -336,8 +337,9 @@ class API(object):
                     
                     
                     if responseObject['error_type'] == 'sentry_block':
+                        details="sentry_block"
                         self.logger.warning("sendRequest: ********** FATAL ERROR ************* sentry_block")
-                        self.logApiError(responseInfo, currentOperation, config.API_URL, endpoint,response.status_code, "sentry_block")
+                        self.logApiError(responseInfo, currentOperation, config.API_URL, endpoint,response.status_code, details)
                         raise Exception("sendRequest: ********** FATAL ERROR ************* sentry_block")
                     
                     self.logApiError(responseInfo, currentOperation, config.API_URL, endpoint,response.status_code, details)

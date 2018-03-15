@@ -574,7 +574,7 @@ class Bot(API):
         tmp = os.popen("ps -Af").read()
         proccount = tmp.count(processname)
         self.logger.info("canBotStart: Found %s running processes", proccount)
-        if proccount > 2:
+        if proccount > 1:
             self.logger.info("canBotStart: ERROR: another bot instance is running for campaign %s", id_campaign)
             exit("canBotStart: ERROR: another bot instance is running for this campaign")
 

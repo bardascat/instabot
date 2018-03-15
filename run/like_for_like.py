@@ -26,7 +26,7 @@ def canProcessStart(processName):
     for p in psutil.process_iter():
         cmdline = p.cmdline()
         if len(cmdline) > 1:
-            if processName in cmdline[0]:
+            if processName==cmdline[0]:
                 timesStarted=timesStarted+1
 
     if timesStarted>1:

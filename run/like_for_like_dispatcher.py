@@ -54,7 +54,7 @@ def findProcessPid(processName):
     for p in psutil.process_iter():
         cmdline = p.cmdline()
         if len(cmdline) > 0:
-            if processName in cmdline[0]:
+            if processName==cmdline[0]:
                 logger.info("getProcessPid:Found %s, pid %s" % (cmdline[0], p.pid))
                 return p.pid
 
@@ -67,7 +67,7 @@ def canProcessStart(processName):
     for p in psutil.process_iter():
         cmdline = p.cmdline()
         if len(cmdline) > 1:
-            if processName in cmdline[0]:
+            if processName==cmdline[0]:
                 timesStarted=timesStarted+1
 
     if timesStarted>1:
@@ -102,7 +102,8 @@ if pid is False:
 else:
     logger.info("All good ! There is no other process running !")
 
-exit("done")
+
+exit("STOP")
 # select users that have an active subscription, and have pending posts to like.
 result = api_db.select(
     "select users.id_user,email,username,campaign.password,campaign.id_campaign from users  join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and (select count(*) from user_post_log where id_user=users.id_user)<(select count(*) from user_post where id_user!=users.id_user) and campaign.active=1");

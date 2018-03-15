@@ -44,8 +44,8 @@ def _filter_own_medias(self,media_items):
     for media in media_items:
         if media['user']['username']!=self.campaignObject['username']:
             not_own_medias.append(media)
-        else:
-            self.logger.info("_filter_own_medias: found own post, going to skip it... %s", media)
+        #else:
+            #self.logger.info("_filter_own_medias: found own post, going to skip it... %s", media)
     return not_own_medias
 
 def _filter_medias_not_liked(self,media_items):
@@ -55,11 +55,11 @@ def _filter_medias_not_liked(self,media_items):
         if 'has_liked' in media.keys():
             if not media['has_liked']:
                 not_liked_medias.append(media)
-            else:
-                self.logger.info("Media %s was already liked, going to skip it !",media)
+            #else:
+                #self.logger.info("Media %s was already liked, going to skip it !",media)
     return not_liked_medias
 
-
+ 
 def _filter_medias_not_commented(self, media_items):
     not_commented_medias = []
     for media in media_items:

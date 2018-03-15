@@ -36,13 +36,13 @@ try:
         min_following_to_follow=10,  # default 10
         max_following_to_followers_ratio=4,  # default 2
         min_media_count_to_follow=20,  # default 3
-        like_delay=40,
+        like_delay=70,
         like_delay_if_bot_blocked=160,
         follow_delay_if_bot_blocked=160,
         follow_delay=80,  # default 30,
         unfollow_delay=80,  # default 30,
         multiple_ip=True
-    )
+    ) 
 
     campaign = api_db.fetchOne("select username,password,timestamp,id_campaign from campaign where id_campaign=%s",
                                args.angie_campaign)
