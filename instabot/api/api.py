@@ -310,11 +310,11 @@ class API(object):
                 responseObject = self.loadJson(response.text)
                 if 'spam' in responseObject:
                     details = "spam"
-                    if self.bot_type=="like_for_like":
-                        self.logger.warning("sendRequest: BOT IS BLOCKED. Going to exit like for like process. Reponse %s", responseObject)
-                        currentOperation = self.currentOperation if hasattr(self, "currentOperation") else None
-                        self.logApiError(responseInfo, currentOperation, config.API_URL, endpoint, response.status_code,details)
-                        raise Exception("sendRequest: SPAM: bot is blocked, going to exit")
+                    #if self.bot_type=="like_for_like":
+                        #self.logger.warning("sendRequest: BOT IS BLOCKED. Going to exit like for like process. Reponse %s", responseObject)
+                        #currentOperation = self.currentOperation if hasattr(self, "currentOperation") else None
+                        #self.logApiError(responseInfo, currentOperation, config.API_URL, endpoint, response.status_code,details)
+                        #raise Exception("sendRequest: SPAM: bot is blocked, going to exit")
 
                     sleep_minutes = self.get_spam_delay()
                     self.like_delay = self.like_delay_if_bot_blocked
