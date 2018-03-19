@@ -36,11 +36,11 @@ try:
         min_following_to_follow=10,  # default 10
         max_following_to_followers_ratio=4,  # default 2
         min_media_count_to_follow=20,  # default 3
-        like_delay=70,
-        like_delay_if_bot_blocked=160,
-        follow_delay_if_bot_blocked=160,
-        follow_delay=80,  # default 30,
-        unfollow_delay=80,  # default 30,
+        like_delay=50,
+        like_delay_if_bot_blocked=100,
+        follow_delay_if_bot_blocked=110,
+        follow_delay=70,  # default 30,
+        unfollow_delay=70,  # default 30,
         multiple_ip=True
     ) 
 
@@ -68,7 +68,7 @@ try:
     bot.logger.info("dispatcher: Initial calculated Amount(SOD): %s, totalExpectedLike:%s, totalExpectedFollow: %s" % (
     calculatedAmount, totalExpectedLikesAmount, totalExpectedFollowAmount))
 
-    numberOfIterations = randint(9, 11)
+    numberOfIterations = randint(13, 15)
     pauses = [3, 6, 9]
     bot.logger.info("DISPATCHER: Daily pause are set for iteration %s", pauses)
     currentIteration = 1
