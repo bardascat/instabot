@@ -57,19 +57,16 @@ try:
     totalExpectedLikesAmount = int(bot.getLikeAmount(args.angie_campaign, calculatedAmount))
     totalExpectedFollowAmount = int(bot.getFollowAmount(args.angie_campaign, calculatedAmount))
 
+    
     bot.like_delay = bot.get_like_delay(totalExpectedLikesAmount)
     bot.follow_delay = bot.get_follow_delay(totalExpectedFollowAmount)
-
-    # usersLikeForLike = api_db.fetchOne('select count(*) as total_users from users join user_subscription on (users.id_user = user_subscription.id_user)  join campaign on (users.id_user = campaign.id_user) where (user_subscription.end_date>now() or user_subscription.end_date is null)   and campaign.id_campaign!=%s order by users.id_user',args.angie_campaign)
-    # bot.logger.info("dispatcher_v2: Total number of likeForLike users: %s", usersLikeForLike['total_users'])
-    likeForLikeAmount = 0
-    standardOperationLikeAmount = totalExpectedLikesAmount - likeForLikeAmount
-
+    
+    
     bot.logger.info("dispatcher: Initial calculated Amount(SOD): %s, totalExpectedLike:%s, totalExpectedFollow: %s" % (
     calculatedAmount, totalExpectedLikesAmount, totalExpectedFollowAmount))
 
     numberOfIterations = randint(13, 15)
-    pauses = [3, 6, 9]
+    pauses = [3, 5, 8, 11]
     bot.logger.info("DISPATCHER: Daily pause are set for iteration %s", pauses)
     currentIteration = 1
 
@@ -77,7 +74,6 @@ try:
     totalPerformedFollows = int(bot.getFollowPerformed(datetime.today().date()))
 
     securityBreak = 30
-
     startingDate = datetime.now().date()
 
     bot.logger.info("DISPATCHER: Started bot, going to perform %s likes, %s follow/unfollow during %s iterations" % (
@@ -86,55 +82,43 @@ try:
     while (
             totalPerformedLikes < totalExpectedLikesAmount or totalPerformedFollows < totalExpectedFollowAmount) and currentIteration < securityBreak and startingDate.day == datetime.now().date().day:
         if currentIteration in pauses:
-            dailyPause = randint(25, 50)
-            bot.logger.info("dispatcher: Daily pause of %s minutes", dailyPause)
+            dailyPause = randint(10, 30)
+            bot.logger.info("dispatcher: Daily pause of %s minutes at iteration: %s" % (dailyPause, currentInteration))
             time.sleep(dailyPause * 60)
 
         currentIterationPerformedLikes = 0
 
         # if no more likes needed to perform
         if totalExpectedLikesAmount <= totalPerformedLikes:
-            currentIterationStandardLikesAmount = 0
-            currentIterationLikeForLikeAmount = 0
+            currentIterationLikeAmount = 0
         else:
-            currentIterationStandardLikesAmount = int(
-                math.ceil(math.ceil(standardOperationLikeAmount) / math.ceil(numberOfIterations)))
-            currentIterationLikeForLikeAmount = int(
-                math.ceil(math.ceil(likeForLikeAmount) / math.ceil(numberOfIterations / 2)))
-
-        currentIterationTotalExpectedLikeAmount = currentIterationStandardLikesAmount + currentIterationLikeForLikeAmount
-
+            currentIterationLikeAmount = int(math.ceil(math.ceil(totalExpectedLikesAmount) / math.ceil(numberOfIterations)))
+                
+    
         # if no more follows are needed
         if totalExpectedFollowAmount <= totalPerformedFollows:
             currentIterationFollowAmount = 0
         else:
-            currentIterationFollowAmount = int(
-                math.ceil(math.ceil(totalExpectedFollowAmount) / math.ceil(numberOfIterations)))
+            currentIterationFollowAmount = int(math.ceil(math.ceil(totalExpectedFollowAmount) / math.ceil(numberOfIterations)))
 
         bot.logger.info(
             "DISPATCHER: STARTED ITERATION no %s. Going to perform in this ITERATION: %s likes , %s follow/unfollow. Total to perform %s likes, %s follow/unfollow. Already performed %s likes, %s follow/unfollow" % (
-                currentIteration, currentIterationTotalExpectedLikeAmount, currentIterationFollowAmount,
+                currentIteration, currentIterationLikeAmount, currentIterationFollowAmount,
                 totalExpectedLikesAmount, totalExpectedFollowAmount, totalPerformedLikes, totalPerformedFollows))
 
-        # like for like operation
-        likeForLikeResult = 0
-        if likeForLikeResult < currentIterationLikeForLikeAmount:
-            currentIterationStandardLikesAmount = currentIterationStandardLikesAmount + (
-            currentIterationLikeForLikeAmount - likeForLikeResult)
-        currentIterationPerformedLikes = currentIterationPerformedLikes + likeForLikeResult
 
         # standard operation
-        standardResult = bot.startStandardOperation(likesAmount=currentIterationStandardLikesAmount,
+        standardResult = bot.startStandardOperation(likesAmount=currentIterationLikeAmount,
                                                     followAmount=currentIterationFollowAmount,
                                                     operations=bot.getBotOperations(args.angie_campaign))
 
-        currentIterationPerformedLikes = currentIterationPerformedLikes + standardResult['no_likes']
-        totalPerformedLikes = totalPerformedLikes + currentIterationPerformedLikes
+
+        totalPerformedLikes = totalPerformedLikes + standardResult['no_likes']
         totalPerformedFollows = totalPerformedFollows + standardResult['no_follows']
 
         bot.logger.info(
             "DISPATCHER: Iteration %s end. Summary: Likes performed %s Likes expected %s . Follows/Unfollow performed %s , Expected follow/unfollow %s .  "
-            % (currentIteration, currentIterationPerformedLikes, currentIterationTotalExpectedLikeAmount,
+            % (currentIteration, standardResult['no_likes'], currentIterationLikeAmount,
                standardResult['no_follows'], currentIterationFollowAmount))
 
         bot.logger.info("DISPATCHER: Total likes to perform: %s, total performed likes: %s,  likes remained: %s" % (

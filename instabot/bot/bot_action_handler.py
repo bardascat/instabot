@@ -17,37 +17,42 @@ def getInitialActionAmount(self, id_campaign):
     result['initialAmount']={}
     result['accountMaturity']={}
     result['accountMaturity']['reachedMaturity']=False
+    result['accountMaturity']['warmingUp']=False
 
     maximumLikeAmountResult = api_db.fetchOne("select * from bot_config where `key`='maximum_like_amount'")
     result['initialAmount']['maximumLikeAmount']=int(maximumLikeAmountResult['value'])
-    if id_campaign == 227:
-        self.logger.info("getInitialActionAmount: This is corina's account, going to perform other values: 1200/700 600/300")
-        result['initialAmount']['maximumLikeAmount'] = 1200
 
     maximumFollowAmountResult = api_db.fetchOne("select * from bot_config where `key`='maximum_follow_amount'")
     result['initialAmount']['maximumFollowAmount'] = int(maximumFollowAmountResult['value'])
-    if id_campaign == 227:
-        result['initialAmount']['maximumFollowAmount'] = 600
-
+   
     minimumLikeAmountResult = api_db.fetchOne("select * from bot_config where `key`='minimum_like_amount'")
     result['initialAmount']['minimumLikeAmount'] = int(minimumLikeAmountResult['value'])
 
-    if id_campaign == 227:
-        result['initialAmount']['minimumLikeAmount'] = 800
 
     minimumFollowAmountResult = api_db.fetchOne("select * from bot_config where `key`='minimum_follow_amount'")
     result['initialAmount']['minimumFollowAmount'] = int(minimumFollowAmountResult['value'])
-
-    if id_campaign == 227:
-        result['initialAmount']['minimumFollowAmount'] = 300
 
     result['initialAmount']['minimumActionAmount'] = result['initialAmount']['minimumLikeAmount'] +result['initialAmount']['minimumFollowAmount']
     result['initialAmount']['maximumActionAmount'] = result['initialAmount']['maximumLikeAmount'] + result['initialAmount']['maximumFollowAmount']
 
     
-    self.logger.info("getInitialActionAmount: Default bot configuration is:", result)
+    self.logger.info("getInitialActionAmount: Default bot configuration is: %s ", result)
     
+    warmUpDays=3
+    self.logger.info("getInitialActionAmount: Checking if account is warming up...")
+    workedDaysResult = api_db.fetchOne("select count(*) as worked_days from (select distinct date(timestamp) from bot_action where id_campaign=%s order by date(timestamp)) worked_days", id_campaign)
+
+    if workedDaysResult['worked_days']<warmUpDays:
+      self.logger.info("getInitialActionAmount: The bot warmed  up for %s days so far. This means the bot still needs to warm up until reaches %s days." %  (workedDaysResult['worked_days'], warmUpDays))
+      result['calculatedAmount']=self.getWarmUpResult(result['initialAmount'], 20)
+      result['accountMaturity']['warmingUp']=True
+      return result
+    else:
+      self.logger.info("getInitialActionAmount: The bot worked for %s days so far. This means it is fully warmed up ! Minimum %s days to warmup !" % ( workedDaysResult['worked_days'], warmUpDays))
+    
+
     #check maturity of account
+    self.logger.info("getInitialActionAmount: Checking if the account is 100% functional...")
     accountIsFullyFunctionalAfter=90
     campaign = api_db.fetchOne("select campaign.timestamp, percentage_amount, month_start,month_end from campaign join instagram_account_type using (id_account_type) where id_campaign=%s", id_campaign)
    
@@ -60,21 +65,28 @@ def getInitialActionAmount(self, id_campaign):
         result['accountMaturity']['reachedMaturity']=True
         self.logger.info("getInitialActionAmount: Account is fullyFunctional ! %s days passed since signup. Minimum is %s" % (delta.days, accountIsFullyFunctionalAfter))
         return result
+    else:
+        self.logger.info("getInitialActionAmount: Account is not fully functional, going to apply the percentage based on instagram account maturity...")
     
-    #check maturity if the account
     self.logger.info("getInitialActionAmount: Going to calculated action number based on account type: month_start: %s, month_end:%s, percentage: %s" % (campaign['month_start'],campaign['month_end'], campaign['percentage_amount']))
-
     result['accountMaturity']['usage_percentage'] = campaign['percentage_amount']
-    result['calculatedAmount']['maximumLikeAmount']= int(round(result['initialAmount']['maximumLikeAmount'] * campaign['percentage_amount'] / 100))
-    result['calculatedAmount']['maximumFollowAmount']= int(round(result['initialAmount']['maximumFollowAmount'] * campaign['percentage_amount'] / 100))
-    result['calculatedAmount']['minimumLikeAmount']= int(round(result['initialAmount']['minimumLikeAmount'] * campaign['percentage_amount'] / 100))
-    result['calculatedAmount']['minimumFollowAmount']= int(round(result['initialAmount']['minimumFollowAmount'] * campaign['percentage_amount'] / 100))
-
-    result['calculatedAmount']['minimumActionAmount'] = result['calculatedAmount']['minimumLikeAmount'] +result['calculatedAmount']['minimumFollowAmount']
-    result['calculatedAmount']['maximumActionAmount'] = result['calculatedAmount']['maximumLikeAmount'] + result['calculatedAmount']['maximumFollowAmount']
-    
+    calculatedAmount = self.getWarmUpResult(result['initialAmount'], campaign['percentage_amount'])
+    result['calculatedAmount']=calculatedAmount
     self.logger.info("getInitialActionAmount: After applying %s percentage, the result is: %s" % (campaign['percentage_amount'], result))
     return result
+    
+
+def getWarmUpResult(self, initialAmount, percentageAmount):
+  calculatedAmount={}
+  
+  calculatedAmount['maximumLikeAmount']= int(round(initialAmount['maximumLikeAmount'] * percentageAmount / 100))
+  calculatedAmount['maximumFollowAmount']= int(round(initialAmount['maximumFollowAmount'] * percentageAmount / 100))
+  calculatedAmount['minimumLikeAmount']= int(round(initialAmount['minimumLikeAmount'] * percentageAmount / 100))
+  calculatedAmount['minimumFollowAmount']= int(round(initialAmount['minimumFollowAmount'] * percentageAmount / 100))
+  calculatedAmount['minimumActionAmount'] = initialAmount['minimumLikeAmount'] + calculatedAmount['minimumFollowAmount']
+  calculatedAmount['maximumActionAmount'] = initialAmount['maximumLikeAmount'] + calculatedAmount['maximumFollowAmount']
+  
+  return calculatedAmount
     
 
 #this function is used to retrieve the configuration if it is stoped and restarted
@@ -192,14 +204,11 @@ def getAmountDistribution(self, id_campaign):
 
 def getLikeAmount(self,id_campaign, calculatedAmount):
   likesAmount=calculatedAmount['like_amount']
-
+  
   hasLikesOperation= api_db.fetchOne("select count(*) as rows from campaign_config where id_campaign=%s and configName like %s and enabled=1",id_campaign, "like_"+"%")
   if hasLikesOperation['rows']==0:
-    #todo exclude bot account
-    usersLikeForLike = api_db.fetchOne('select count(*) as total_users  from users join user_subscription on (users.id_user = user_subscription.id_user)  join campaign on (users.id_user = campaign.id_user) join user_rol on (users.id_user=user_rol.id_user) where (user_subscription.end_date>now() or user_subscription.end_date is null)   and campaign.id_campaign!=%s and user_rol.rol_id=1 order by users.id_user',id_campaign)
-    self.logger.info("getLikeAmount: Total number of likeForLike users: %s", usersLikeForLike['total_users'])
-    self.logger.info("getLikeAmount: Campaign id: %s did not set any like operations ! Going to perform only %s likeForLike:!" % (id_campaign, usersLikeForLike['total_users']))
-    return usersLikeForLike['total_users']
+    self.logger.info("getLikeAmount: Campaign id: %s did not set any like operations !. Going to perform 0 likes." % (id_campaign))
+    return 0
   
   self.logger.info("getLikeAmount: Campaign id %s wants to perform %s amount of likes" % (id_campaign,likesAmount))
       
