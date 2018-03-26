@@ -12,19 +12,18 @@ sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 sys.path.append(os.path.join(sys.path[0], '../'))
 
 parser = argparse.ArgumentParser(add_help=True)
-parser.add_argument('-u', type=str, help="instagram username")
-parser.add_argument('-p', type=str, help="instagram password")
-parser.add_argument('-id_campaign', type=str, help="campaign")
+parser.add_argument('-settings', type=str, help="settings")
 args = parser.parse_args()
 
-if args.u is None:
-    exit("dispatcher: Username is not specified !")
+if args.settings is None:
+    exit("dispatcher: settings are not specified !")
 
 result = {}
 try:
-    bot = Bot(id_campaign=args.id_campaign, multiple_ip=True, hide_output=True)
-    bot.logger.info("verify_account:Going to verify the account... username %s, password %s" % (args.u, args.p))
-    status = bot.login(username=args.u, password=args.p, force=True, storage=False)
+    settings=json.loads(args.settings)
+    bot = Bot(id_campaign=str(settings['id_campaign']), multiple_ip=True, hide_output=True)
+    bot.logger.info("verify_account:Going to verify the account... username %s, password %s" % (settings['u'], settings['p']))
+    status = bot.login(username=settings['u'], password=settings['p'], force=True, storage=False)
     result["status"] = True
     result["data"] = bot.LastResponse.text
     print(json.dumps(result))
