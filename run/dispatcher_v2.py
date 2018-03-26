@@ -47,7 +47,7 @@ try:
     campaign = api_db.fetchOne("select username,password,timestamp,id_campaign from campaign where id_campaign=%s",
                                args.angie_campaign)
     bot.canBotStart(args.angie_campaign)
-    status = bot.login(username=campaign['username'], password=campaign['password'])
+    status = bot.login(username=campaign['username'], password=campaign['password'], storage=False)
     if status != True:
         bot.logger.info("dispatcher: Could not login, going to exit !")
         exit()
