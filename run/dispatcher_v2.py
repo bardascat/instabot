@@ -83,7 +83,7 @@ try:
             totalPerformedLikes < totalExpectedLikesAmount or totalPerformedFollows < totalExpectedFollowAmount) and currentIteration < securityBreak and startingDate.day == datetime.now().date().day:
         if currentIteration in pauses:
             dailyPause = randint(10, 30)
-            bot.logger.info("dispatcher: Daily pause of %s minutes at iteration: %s" % (dailyPause, currentInteration))
+            bot.logger.info("dispatcher: Daily pause of %s minutes at iteration: %s" % (dailyPause, currentIteration))
             time.sleep(dailyPause * 60)
 
         currentIterationPerformedLikes = 0

@@ -42,13 +42,10 @@ def getInitialActionAmount(self, id_campaign):
     self.logger.info("getInitialActionAmount: Checking if account is warming up...")
     workedDaysResult = api_db.fetchOne("select count(*) as worked_days from (select distinct date(timestamp) from bot_action where id_campaign=%s order by date(timestamp)) worked_days", id_campaign)
 
-    if workedDaysResult['worked_days']<warmUpDays:
-      self.logger.info("getInitialActionAmount: The bot warmed  up for %s days so far. This means the bot still needs to warm up until reaches %s days." %  (workedDaysResult['worked_days'], warmUpDays))
+    if self.isAccountWarmingUp()==True:
       result['calculatedAmount']=self.getWarmUpResult(result['initialAmount'], 20)
       result['accountMaturity']['warmingUp']=True
       return result
-    else:
-      self.logger.info("getInitialActionAmount: The bot worked for %s days so far. This means it is fully warmed up ! Minimum %s days to warmup !" % ( workedDaysResult['worked_days'], warmUpDays))
     
 
     #check maturity of account
@@ -76,6 +73,20 @@ def getInitialActionAmount(self, id_campaign):
     return result
     
 
+def isAccountWarmingUp(self):
+    warmUpDays=3
+    self.logger.info("getInitialActionAmount: Checking if account is warming up...")
+    workedDaysResult = api_db.fetchOne("select count(*) as worked_days from (select distinct date(timestamp) from bot_action where id_campaign=%s order by date(timestamp)) worked_days", self.id_campaign)
+    
+    if workedDaysResult['worked_days']<warmUpDays:
+      self.logger.info("getInitialActionAmount: The bot warmed  up for %s days so far. This means the bot still needs to warm up until reaches %s days." %  (workedDaysResult['worked_days'], warmUpDays))
+      return True
+    else:
+      self.logger.info("getInitialActionAmount: The bot worked for %s days so far. This means it is fully warmed up ! Minimum %s days to warmup !" % ( workedDaysResult['worked_days'], warmUpDays))
+      return False
+      
+      
+      
 def getWarmUpResult(self, initialAmount, percentageAmount):
   calculatedAmount={}
   

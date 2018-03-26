@@ -114,14 +114,16 @@ class API(object):
             return True
         
         
-    def login(self, username=None, password=None, force=False, proxy=None):
-        self.logger.info("login: Trying to login user %s with custom IP: %s, is bot account %s" % (
-        username, self.multiple_ip, self.is_bot_account))
+    def login(self, username=None, password=None, force=False, proxy=None, storage=True):
+        self.logger.info("login: Trying to login user %s with force flag value: %s, storage value: %s" % (username, force, storage))
         
-        if self.canUserLogin(self.id_campaign)==False:
+      
+        
+        if self.canUserLogin(self.id_campaign)==False and force==False:
             raise Exception("login: User cannot login anymore today since it reached tha maximum blocks per day !")
             
-     
+        if force==True:
+            self.logger.info("login. Going to login the user no matter what since force flag is true.")
         if (not self.isLoggedIn or force):
             self.session = requests.Session()
             if self.multiple_ip is not None and self.multiple_ip is not False:
@@ -143,8 +145,11 @@ class API(object):
             response=self.session.get('https://api.ipify.org?format=json')
             self.logger.info("Proxy test respone %s",response.text)
             
-            #todo: Probably it is not a good idea to keep the same cookie forever. The regular bot should recreat the cookie each morning !
-            if self.loginFromStorage(username, password)!=True:
+            #todo: Probably it is not a good idea to keep the same cookie forever. The regular bot should recreate the cookie each morning !
+            if storage==False:
+                self.logger.info("login: Storage login is disabled !")
+                return self.newLogin(username,password,proxy)
+            elif self.loginFromStorage(username, password)!=True:
                 return self.newLogin(username,password,proxy)
             else:
                 return True

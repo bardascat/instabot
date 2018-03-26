@@ -24,12 +24,13 @@ result = {}
 try:
     bot = Bot(id_campaign=args.id_campaign, multiple_ip=True, hide_output=True)
     bot.logger.info("verify_account:Going to verify the account... username %s, password %s" % (args.u, args.p))
-    status = bot.login(username=args.u, password=args.p)
+    status = bot.login(username=args.u, password=args.p, force=True, storage=False)
     result["status"] = True
     result["data"] = bot.LastResponse.text
     print(json.dumps(result))
 except:
     exceptionDetail = traceback.format_exc()
+    #print(exceptionDetail)
     result["status"] = False
 
     if bot.LastResponse != None:

@@ -53,7 +53,7 @@ from .bot_stats import save_user_stats
 
 from .bot_util import getBotOperations, get_follow_delay, get_like_delay, get_spam_delay
 from .bot_action_handler import getLikeAmount, getFollowAmount, getAmountDistribution, getLikesPerformed, \
-    getFollowPerformed
+    getFollowPerformed,getWarmUpResult,isAccountWarmingUp
 
 
 class Bot(API):
@@ -211,7 +211,7 @@ class Bot(API):
 
     def login(self, **args):
         if self.proxy:
-            args['proxy'] = self.proxy 
+            args['proxy'] = self.proxy
         status = super(self.__class__, self).login(**args)
         self.prepare()
         signal.signal(signal.SIGTERM, self.logout)
@@ -563,6 +563,12 @@ class Bot(API):
 
     def getFollowPerformed(self, dateParam):
         return getFollowPerformed(self, dateParam)
+    
+    def getWarmUpResult(self, result, percentage):
+        return getWarmUpResult(self, result, percentage)
+        
+    def isAccountWarmingUp(self):
+        return isAccountWarmingUp(self)
 
     def getAmountDistribution(self, id_campaign):
         return getAmountDistribution(self, id_campaign)
