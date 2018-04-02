@@ -634,7 +634,7 @@ class Bot(API):
                 time.sleep(pause)
                 self.logger.info("------------------done waiting... going to process next user----------------")
 
-            pause= randint(8,13)
+            pause= randint(4,6)
             self.logger.info("startScanUserFeed: Iteration %s ended, going to sleep for %s minutes" % (iteration, pause))
             iteration=iteration+1
             time.sleep(pause * 60)
@@ -644,7 +644,7 @@ class Bot(API):
 
     def startLikeForLike(self):
         self.logger.info("bot.startLikeForLike: Started likeForLike operation for user %s.", self.web_application_id_user)
-        totalToLikeResult = api_db.fetchOne("select count(*) as total from user_post where id_post not in (select id_post from user_post_log where id_user=%s) and id_user!=%s",self.web_application_id_user,self.web_application_id_user)
+        totalToLikeResult = api_db.fetchOne("select count(*) as total from user_post where id_post not in (select id_post from user_post_log where id_user=%s) and user_post.id_user!=%s and user_post.timestamp>=(select start_date from user_subscription where id_user=%s and (user_subscription.end_date>=NOW() or user_subscription.end_date is null))",self.web_application_id_user,self.web_application_id_user,self.web_application_id_user)
         self.logger.info("startLikeForLike: User has %s posts to like", totalToLikeResult['total'])
         
         totalLiked = 0
@@ -654,7 +654,7 @@ class Bot(API):
         
         while havePendingWork == True and securityBreak>iteration:
             self.logger.info("startLikeForLike: Iteration %s started...", iteration)
-            post = api_db.fetchOne("select * from user_post where id_post not in (select id_post from user_post_log where id_user=%s) and id_user!=%s order by id_post asc limit 1",self.web_application_id_user,self.web_application_id_user)
+            post = api_db.fetchOne("select user_post.* from user_post where id_post not in (select id_post from user_post_log where id_user=%s) and user_post.id_user!=%s and user_post.timestamp>=(select start_date from user_subscription where id_user=%s and (user_subscription.end_date>=NOW() or user_subscription.end_date is null)) order by id_post asc limit 1",self.web_application_id_user,self.web_application_id_user,self.web_application_id_user)
             if post is None:
                 self.logger.info("startLikeForLike: There are no more posts to like, going to return !")
                 havePendingWork=False

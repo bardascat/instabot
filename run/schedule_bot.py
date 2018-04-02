@@ -34,7 +34,7 @@ DEVNULL = open(os.devnull, 'wb')
 waitDelay = randint(10, 50)
 
 logger.info("The bots will be started in %s minutes", waitDelay)
-time.sleep(waitDelay * 60)
+time.sleep(waitDelay * 40)
 
 logger.info("Going to start bots for each user...")
 
