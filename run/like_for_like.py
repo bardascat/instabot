@@ -57,7 +57,7 @@ try:
     if not canStart:
         raise Exception("Error: there is already a like for like process with name %s. Going to exit", processName)
 
-    status = bot.login(username=campaign['username'], password=campaign['password'])
+    status = bot.login(username=campaign['username'], password=campaign['password'], logoutFlag=False)
 
     if not status:
         bot.logger.info("like_for_like: Could not login, going to exit !")

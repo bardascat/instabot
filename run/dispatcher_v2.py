@@ -37,8 +37,8 @@ try:
         max_following_to_followers_ratio=4,  # default 2
         min_media_count_to_follow=20,  # default 3
         like_delay=50,
-        like_delay_if_bot_blocked=100,
-        follow_delay_if_bot_blocked=110,
+        like_delay_if_bot_blocked=50,
+        follow_delay_if_bot_blocked=60,
         follow_delay=70,  # default 30,
         unfollow_delay=70,  # default 30,
         multiple_ip=True

@@ -114,8 +114,8 @@ class API(object):
             return True
         
         
-    def login(self, username=None, password=None, force=False, proxy=None, storage=True):
-        self.logger.info("login: Trying to login user %s with force flag value: %s, storage value: %s" % (username, force, storage))
+    def login(self, username=None, password=None, force=False, proxy=None, storage=True, logoutFlag=True):
+        self.logger.info("login: Trying to login user %s with force flag value: %s, storage value: %s, logoutFlag: %s" % (username, force, storage, logoutFlag))
         
       
         

@@ -208,18 +208,41 @@ class Bot(API):
                              "Worked: %s" % (datetime.datetime.now() - self.start_time))
             self.print_counters()
             raise SystemExit(0)
+            
+    def shutdown(self, *args):
+        self.logger.info("shutdown: Going to close process without logging out !")
+        if self.isLoggedIn:
+            self.logger.info("logout: Going to shutdown campaign id: %s", self.id_campaign)
+
+            if self.id_campaign != False:
+                save_checkpoint(self)
+
+            #super(self.__class__, self).logout()
+            self.logger.info("logout: Bot stopped. "
+                             "Worked: %s" % (datetime.datetime.now() - self.start_time))
+            self.print_counters()
+            raise SystemExit(0)
 
     def login(self, **args):
         if self.proxy:
             args['proxy'] = self.proxy
         status = super(self.__class__, self).login(**args)
         self.prepare()
-        signal.signal(signal.SIGTERM, self.logout)
-        signal.signal(signal.SIGINT, self.logout)
+        if 'logoutFlag' not in args or args['logoutFlag']!=False:
+            self.logger.info("login: Logout flag is set to true !")
+            signal.signal(signal.SIGTERM, self.logout)
+            signal.signal(signal.SIGINT, self.logout)
+            atexit.register(self.logout)
+        else:
+            self.logger.info("login: Logout flag is set to false !")
+            signal.signal(signal.SIGTERM, self.shutdown)
+            signal.signal(signal.SIGINT, self.shutdown)
+            atexit.register(self.shutdown)
+            
         signal.signal(signal.SIGTSTP, self.pauseBotHandler)
         signal.signal(signal.SIGCONT, self.resumeBotHandler)
 
-        atexit.register(self.logout)
+        
         return status
 
     def prepare(self):
