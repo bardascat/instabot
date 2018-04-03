@@ -636,7 +636,7 @@ class Bot(API):
                 lastPost=api_db.fetchOne("select * from user_post where id_user=%s order by timestamp DESC limit 1", user['id_user'])
                 
                 self.logger.info("startScanUserFeed: Last post is %s", lastPost)
-                #todo fix this date -> stupid as fuck
+                
                 if lastPost is None:
                     recentThan= user['start_date']
                     self.logger.info("startScanUserFeed: Last post is none, going to set recentThan date to user subscription  %s", recentThan)
