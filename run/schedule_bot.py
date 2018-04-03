@@ -31,10 +31,10 @@ logger.info("schedule_bot: Starting the scheduler script")
 logger.info("schedule_bot: Received the following campaigns %s", campaigns)
 
 DEVNULL = open(os.devnull, 'wb')
-waitDelay = randint(10, 50)
+waitDelay = randint(10, 30)
 
 logger.info("The bots will be started in %s minutes", waitDelay)
-time.sleep(waitDelay * 40)
+time.sleep(waitDelay * 60)
 
 logger.info("Going to start bots for each user...")
 
@@ -45,7 +45,7 @@ for campaign in campaigns:
         "bash -c \"exec -a " + processName + " /usr/bin/python /home/instabot/run/dispatcher_v2.py -angie_campaign=" + str(
             campaign) + "\"", stdin=None, stdout=DEVNULL, stderr=DEVNULL, close_fds=True, shell=True)
     logger.info("schedule_bot: Done staring campaign for %s", campaign)
-    pause=randint(2,10)
+    pause=randint(1,3)
     logger.info("schedule_bot: Going to sleep %s minutes",pause)
     time.sleep(pause * 60)
 
