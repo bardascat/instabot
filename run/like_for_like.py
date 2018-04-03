@@ -41,8 +41,8 @@ try:
     bot = Bot(
         id_campaign=args.angie_campaign,
         max_likes_per_day=3100,  # default 1000
-        like_delay=50,
-        like_delay_if_bot_blocked=50,
+        like_delay=35,
+        like_delay_if_bot_blocked=40,
         multiple_ip=True,
         bot_type="like_for_like"
     )

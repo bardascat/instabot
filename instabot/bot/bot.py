@@ -614,7 +614,7 @@ class Bot(API):
         self.logger.info("startScanUserFeed: Started !")
         iteration=0
         while True:
-            result = api_db.select("select distinct users.id_user,email,instagram_username,campaign.id_campaign from users join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user) where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 order by rand()");
+            result = api_db.select("select distinct users.id_user,email,instagram_username,campaign.id_campaign, user_subscription.start_date from users join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user) where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 order by rand()");
             
             self.logger.info("startScanUserFeed:Found %s users", len(result))
             
@@ -636,10 +636,10 @@ class Bot(API):
                 lastPost=api_db.fetchOne("select * from user_post where id_user=%s order by timestamp DESC limit 1", user['id_user'])
                 
                 self.logger.info("startScanUserFeed: Last post is %s", lastPost)
-                
+                #todo fix this date -> stupid as fuck
                 if lastPost is None:
-                    recentThan= datetime.datetime(2018,03,12,0,0,0)
-                    self.logger.info("startScanUserFeed: Last post is none, going to set recentThan date to %s", recentThan)
+                    recentThan= user['start_date']
+                    self.logger.info("startScanUserFeed: Last post is none, going to set recentThan date to user subscription  %s", recentThan)
                 else:
                     recentThan = lastPost['timestamp']
                     self.logger.info("startScanUserFeed: Last post is NOT NONE, going to set recentThan date to %s", recentThan)
@@ -667,7 +667,7 @@ class Bot(API):
 
     def startLikeForLike(self):
         self.logger.info("bot.startLikeForLike: Started likeForLike operation for user %s.", self.web_application_id_user)
-        totalToLikeResult = api_db.fetchOne("select count(*) as total from user_post where id_post not in (select id_post from user_post_log where id_user=%s) and user_post.id_user!=%s and user_post.timestamp>=(select start_date from user_subscription where id_user=%s and (user_subscription.end_date>=NOW() or user_subscription.end_date is null))",self.web_application_id_user,self.web_application_id_user,self.web_application_id_user)
+        totalToLikeResult = api_db.fetchOne("select count(*) as total from user_post where id_post not in (select id_post from user_post_log where id_user=%s) and user_post.id_user!=%s and user_post.timestamp>=(select start_date from user_subscription where id_user=%s and (user_subscription.end_date>=NOW() or user_subscription.end_date is null))  and user_post.timestamp>=DATE(NOW() - INTERVAL 1 DAY)",self.web_application_id_user,self.web_application_id_user,self.web_application_id_user)
         self.logger.info("startLikeForLike: User has %s posts to like", totalToLikeResult['total'])
         
         totalLiked = 0
@@ -677,7 +677,7 @@ class Bot(API):
         
         while havePendingWork == True and securityBreak>iteration:
             self.logger.info("startLikeForLike: Iteration %s started...", iteration)
-            post = api_db.fetchOne("select user_post.* from user_post where id_post not in (select id_post from user_post_log where id_user=%s) and user_post.id_user!=%s and user_post.timestamp>=(select start_date from user_subscription where id_user=%s and (user_subscription.end_date>=NOW() or user_subscription.end_date is null)) order by id_post asc limit 1",self.web_application_id_user,self.web_application_id_user,self.web_application_id_user)
+            post = api_db.fetchOne("select user_post.* from user_post where id_post not in (select id_post from user_post_log where id_user=%s) and user_post.id_user!=%s and user_post.timestamp>=(select start_date from user_subscription where id_user=%s and (user_subscription.end_date>=NOW() or user_subscription.end_date is null))  and user_post.timestamp>=DATE(NOW() - INTERVAL 1 DAY) order by id_post asc limit 1",self.web_application_id_user,self.web_application_id_user,self.web_application_id_user)
             if post is None:
                 self.logger.info("startLikeForLike: There are no more posts to like, going to return !")
                 havePendingWork=False
@@ -696,7 +696,7 @@ class Bot(API):
                     self.logger.info("startLikeForLike: Error: Post %s was NOT liked",post['id_post'])
                 
             iteration=iteration+1
-            pause= randint(1,2)
+            pause= randint(1,1)
             self.logger.info("startLikeForLike: Going to sleep %s seconds until proceeding to next post", pause)
             time.sleep(pause)
             
