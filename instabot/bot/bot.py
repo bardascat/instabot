@@ -667,7 +667,7 @@ class Bot(API):
 
     def startLikeForLike(self):
         self.logger.info("bot.startLikeForLike: Started likeForLike operation for user %s.", self.web_application_id_user)
-        totalToLikeResult = api_db.fetchOne("select count(*) as total from user_post where id_post not in (select id_post from user_post_log where id_user=%s) and user_post.id_user!=%s and user_post.timestamp>=(select start_date from user_subscription where id_user=%s and (user_subscription.end_date>=NOW() or user_subscription.end_date is null))  and user_post.timestamp>=DATE(NOW() - INTERVAL 1 DAY)",self.web_application_id_user,self.web_application_id_user,self.web_application_id_user)
+        totalToLikeResult = api_db.fetchOne("select count(*) as total from user_post join user_subscription us on (user_post.id_user=us.id_user) join plan plan on (us.id_plan=plan.id_plan) join plan_type on (plan.id_plan_type=plan_type.id_plan_type) where id_post not in  (select id_post from user_post_log where id_user=%s)  and user_post.id_user!=%s and user_post.timestamp>=(select start_date from user_subscription where id_user=%s and (user_subscription.end_date>=NOW() or user_subscription.end_date is null))   and user_post.timestamp>=DATE(NOW() - INTERVAL 1 DAY) and case when  ( (select pt.name from user_subscription us  join plan p on (us.id_plan=p.id_plan) join plan_type pt on (p.id_plan_type=pt.id_plan_type) where id_user=%s)!='TRIAL_STARTUP') then plan_type.name!='TRIAL_STARTUP' else TRUE end",self.web_application_id_user,self.web_application_id_user,self.web_application_id_user,self.web_application_id_user)
         self.logger.info("startLikeForLike: User has %s posts to like", totalToLikeResult['total'])
         
         totalLiked = 0
@@ -677,7 +677,7 @@ class Bot(API):
         
         while havePendingWork == True and securityBreak>iteration:
             self.logger.info("startLikeForLike: Iteration %s started...", iteration)
-            post = api_db.fetchOne("select user_post.* from user_post where id_post not in (select id_post from user_post_log where id_user=%s) and user_post.id_user!=%s and user_post.timestamp>=(select start_date from user_subscription where id_user=%s and (user_subscription.end_date>=NOW() or user_subscription.end_date is null))  and user_post.timestamp>=DATE(NOW() - INTERVAL 1 DAY) order by id_post asc limit 1",self.web_application_id_user,self.web_application_id_user,self.web_application_id_user)
+            post = api_db.fetchOne("select user_post.* from user_post join user_subscription us on (user_post.id_user=us.id_user) join plan plan on (us.id_plan=plan.id_plan) join plan_type on (plan.id_plan_type=plan_type.id_plan_type) where id_post not in  (select id_post from user_post_log where id_user=%s)  and user_post.id_user!=%s and user_post.timestamp>=(select start_date from user_subscription where id_user=%s and (user_subscription.end_date>=NOW() or user_subscription.end_date is null))   and user_post.timestamp>=DATE(NOW() - INTERVAL 1 DAY) and case when  ( (select pt.name from user_subscription us  join plan p on (us.id_plan=p.id_plan) join plan_type pt on (p.id_plan_type=pt.id_plan_type) where id_user=%s)!='TRIAL_STARTUP') then plan_type.name!='TRIAL_STARTUP' else TRUE end order by id_post asc limit 1",self.web_application_id_user,self.web_application_id_user,self.web_application_id_user,self.web_application_id_user)
             if post is None:
                 self.logger.info("startLikeForLike: There are no more posts to like, going to return !")
                 havePendingWork=False
