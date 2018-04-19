@@ -200,9 +200,11 @@ class API(object):
         self.proxy = proxy
         self.device_id = self.generateDeviceId(m.hexdigest())
         self.setUser(username, password)
+        self.session.cookies.clear_session_cookies()
+        
         
         if (self.SendRequest('si/fetch_headers/?challenge_type=signup&guid=' + self.generateUUID(False), None, True)):
-
+            
             data = {'phone_id': self.generateUUID(True),
             '_csrftoken': self.LastResponse.cookies['csrftoken'],
             'username': self.username,
@@ -212,6 +214,7 @@ class API(object):
             'login_attempt_count': '0'}
 
             if self.SendRequest('accounts/login/', self.generateSignature(json.dumps(data)), True):
+                
                 userIdentity={}
                 self.isLoggedIn = True 
                     
@@ -222,22 +225,23 @@ class API(object):
                 
                 
                 #set instagram username
-                self.logger.info("login: Goin g to set the real instagram username:%s", self.LastJson["logged_in_user"]['username'])
+                self.logger.info("login: Going to set the real instagram username:%s", self.LastJson["logged_in_user"]['username'])
                 insert("update campaign set instagram_username=%s where id_campaign=%s",self.LastJson['logged_in_user']['username'], self.id_campaign)
-            
+                
+                
                 userIdentity['uuid']=self.uuid
                 userIdentity['device_id']=self.device_id
                 userIdentity['user'] = self.LastJson["logged_in_user"]
                 userIdentity['token'] = self.LastResponse.cookies["csrftoken"]
-                userIdentity['csrftoken'] = self.session.cookies.get("csrftoken")
+                userIdentity['csrftoken'] = self.session.cookies.get("csrftoken",domain=".instagram.com")
                 userIdentity['rank_token'] = self.rank_token
-                userIdentity['ds_user'] = self.session.cookies.get("ds_user")
-                userIdentity['ds_user_id'] = self.session.cookies.get("ds_user_id")
-                userIdentity['mid'] = self.session.cookies.get("mid")
-                userIdentity['rur'] = self.session.cookies.get("rur")
-                userIdentity['sessionid'] = self.session.cookies.get("sessionid")
-                userIdentity['social_hash_bucket_id'] = self.session.cookies.get("social_hash_bucket_id")
-                userIdentity['urlgen'] = self.session.cookies.get("urlgen")
+                userIdentity['ds_user'] = self.session.cookies.get("ds_user",domain=".instagram.com")
+                userIdentity['ds_user_id'] = self.session.cookies.get("ds_user_id",domain=".instagram.com")
+                userIdentity['mid'] = self.session.cookies.get("mid",domain=".instagram.com")
+                userIdentity['rur'] = self.session.cookies.get("rur",domain=".instagram.com")
+                userIdentity['sessionid'] = self.session.cookies.get("sessionid",domain=".instagram.com")
+                userIdentity['social_hash_bucket_id'] = self.session.cookies.get("social_hash_bucket_id",domain=".instagram.com")
+                userIdentity['urlgen'] = self.session.cookies.get("urlgen",domain=".instagram.com")
                 
                 with io.open('/home/instabot-log/campaign/'+self.id_campaign+'/user-identity.json', 'w', encoding='utf-8') as f:
                     f.write(json.dumps(userIdentity, ensure_ascii=False))
