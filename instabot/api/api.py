@@ -271,7 +271,7 @@ class API(object):
         self.logger.info("logout: The bot is logged out !")
         return not self.isLoggedIn
 
-    def SendRequest(self, endpoint, post=None, login=False):
+    def SendRequest(self, endpoint, post=None, login=False, pauseOnBlock=True):
         if (not self.isLoggedIn and not login):
             self.logger.critical("Not logged in while accessing endpoint %s.",endpoint)
             return False
@@ -305,7 +305,7 @@ class API(object):
             responseInfo = response.text
             self.logger.info("sendRequest: Request error url: %s: ", config.API_URL + endpoint)
 
-            if response.status_code == 404:
+            if response.status_code == 404  and pauseOnBlock!=False:
                 responseInfo = "Page not found!"
                 self.logger.warning(
                     "sendRequest: HTTP ERROR: STATUS %s, going to sleep 1 minute !" % (str(response.status_code)))

@@ -18,6 +18,7 @@ def getInitialActionAmount(self, id_campaign):
     result['accountMaturity']={}
     result['accountMaturity']['reachedMaturity']=False
     result['accountMaturity']['warmingUp']=False
+    result['accountMaturity']['startup']=False
 
     maximumLikeAmountResult = api_db.fetchOne("select * from bot_config where `key`='maximum_like_amount'")
     result['initialAmount']['maximumLikeAmount']=int(maximumLikeAmountResult['value'])
@@ -45,6 +46,11 @@ def getInitialActionAmount(self, id_campaign):
     if self.isAccountWarmingUp()==True:
       result['calculatedAmount']=self.getWarmUpResult(result['initialAmount'], 20)
       result['accountMaturity']['warmingUp']=True
+      return result
+    
+    if self.isAccountStartup()==True:
+      result['calculatedAmount']=self.getWarmUpResult(result['initialAmount'], 15)
+      result['accountMaturity']['startup']=True
       return result
     
 
@@ -84,7 +90,15 @@ def isAccountWarmingUp(self):
     else:
       self.logger.info("getInitialActionAmount: The bot worked for %s days so far. This means it is fully warmed up ! Minimum %s days to warmup !" % ( workedDaysResult['worked_days'], warmUpDays))
       return False
-      
+
+def isAccountStartup(self):
+    self.logger.info("isAccountStartup: Checking if campaign %s is startup...", self.id_campaign)
+    trialStartupAccount = api_db.fetchOne("select id_user from campaign  join user_subscription using (id_user) join plan using(id_plan) join plan_type using (id_plan_type) where id_campaign=%s and name='TRIAL_STARTUP'", self.id_campaign)
+    self.logger.info("IsAccountStartup result: %s", trialStartupAccount)
+    if trialStartupAccount:
+      return True
+    else:
+      return False
       
       
 def getWarmUpResult(self, initialAmount, percentageAmount):

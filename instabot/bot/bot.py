@@ -53,7 +53,7 @@ from .bot_stats import save_user_stats
 
 from .bot_util import getBotOperations, get_follow_delay, get_like_delay, get_spam_delay
 from .bot_action_handler import getLikeAmount, getFollowAmount, getAmountDistribution, getLikesPerformed, \
-    getFollowPerformed,getWarmUpResult,isAccountWarmingUp
+    getFollowPerformed,getWarmUpResult,isAccountWarmingUp, isAccountStartup
 
 
 class Bot(API):
@@ -589,6 +589,9 @@ class Bot(API):
     
     def getWarmUpResult(self, result, percentage):
         return getWarmUpResult(self, result, percentage)
+    
+    def isAccountStartup(self):
+        return isAccountStartup(self)
         
     def isAccountWarmingUp(self):
         return isAccountWarmingUp(self)

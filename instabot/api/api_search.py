@@ -14,7 +14,7 @@ def searchUsers(self, query):
 
 
 def searchUsername(self, usernameName):
-    query = self.SendRequest('users/' + str(usernameName) + '/usernameinfo/')
+    query = self.SendRequest('users/' + str(usernameName) + '/usernameinfo/', post=None, login=False, pauseOnBlock=False)
     return query
 
 

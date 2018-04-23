@@ -108,10 +108,10 @@ def how_many_seconds_until_midnight():
 
 def get_like_delay(self,likeAmount):
     
-    if self.isAccountWarmingUp():
+    if self.isAccountWarmingUp() or self.isAccountStartup()==True:
         percentageIncrease = 90
         self.like_delay = self.like_delay + int(round(self.like_delay * percentageIncrease / 100))
-        self.logger.info("get_like_delay: Account is warming up, going to increase the like delay by %s percentage. Final delay %s seconds" % ( percentageIncrease, self.like_delay))
+        self.logger.info("get_like_delay: Account is warming up/startup, going to increase the like delay by %s percentage. Final delay %s seconds" % ( percentageIncrease, self.like_delay))
         return self.like_delay
     else:
         self.logger.info("get_like_delay: The like delay is ~ %s seconds", self.like_delay)
@@ -138,10 +138,10 @@ def get_like_delay(self,likeAmount):
 
 def get_follow_delay(self,followAmount):
     
-    if self.isAccountWarmingUp():
+    if self.isAccountWarmingUp()  or self.isAccountStartup()==True:
         percentageIncrease = 90
         self.follow_delay = self.follow_delay + int(round(self.follow_delay * percentageIncrease / 100))
-        self.logger.info("get_follow_delay: Account is warming up, going to increase the follow delay by %s percentage. Final delay ~ %s seconds" % ( percentageIncrease, self.follow_delay))
+        self.logger.info("get_follow_delay: Account is warming up/startup going to increase the follow delay by %s percentage. Final delay ~ %s seconds" % ( percentageIncrease, self.follow_delay))
         return self.follow_delay
     else:
         self.logger.info("get_follow_delay: The follow delay is ~ %s seconds", self.follow_delay)

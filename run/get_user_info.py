@@ -31,12 +31,15 @@ if status != True:
     exit()
 
 userId = bot.get_userid_from_username(args.instagramUsername)
-userInfo = bot.get_user_info(userId)
-
-bot.logger.info("get_user_info: Followers count: %s", userInfo['follower_count'])
-
-data={}
-
-data['followers_count']=userInfo['follower_count']
+bot.logger.info("Userid for username %s is: %s" % (args.instagramUsername, userId))
+if userId is None:
+  data={}
+  data['error']="Username "+args.instagramUsername+" does no exist !"
+else:
+  userInfo = bot.get_user_info(userId)
+  bot.logger.info("get_user_info: Followers count: %s", userInfo['follower_count'])
+  data={}
+  data['followers_count']=userInfo['follower_count']
+  
 result = json.dumps(data)
 print(result)
