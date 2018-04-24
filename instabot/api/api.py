@@ -413,19 +413,22 @@ class API(object):
         return self.SendRequest('friendships/autocomplete_user_list/')
 
     def notifyUserToVerifyInstagramAccount(self):
-        self.logger.info(
-            "notifyUserToVerifyInstagramAccount: Going to send mail to user id: %s to enable instagram ccount",
-            self.web_application_id_user)
-        self.session.get("https://rest.angie.one/email/verifyInstagramAccount?id=" + str(self.web_application_id_user))
-        self.logger.info("notifyUserToVerifyInstagramAccount: done sending email")
+
+        if self.bot_type!="like_for_like":
+            self.logger.info(
+                "notifyUserToVerifyInstagramAccount: Going to send mail to user id: %s to enable instagram ccount",
+                self.web_application_id_user)
+            self.session.get("https://rest.angie.one/email/verifyInstagramAccount?id=" + str(self.web_application_id_user))
+            self.logger.info("notifyUserToVerifyInstagramAccount: done sending email")
 
     def notifyUserInvalidCredentials(self):
-        self.logger.info(
-            "notifyUserInvalidCredentials: Going to send mail to user id: %s to regarding invalid credentials",
-            self.web_application_id_user)
-        self.session.get(
-            "https://rest.angie.one/email/notifyUserInvalidCredentials?id=" + str(self.web_application_id_user))
-        self.logger.info("notifyUserInvalidCredentials: done sending email")
+        if self.bot_type != "like_for_like":
+            self.logger.info(
+                "notifyUserInvalidCredentials: Going to send mail to user id: %s to regarding invalid credentials",
+                self.web_application_id_user)
+            self.session.get(
+                "https://rest.angie.one/email/notifyUserInvalidCredentials?id=" + str(self.web_application_id_user))
+            self.logger.info("notifyUserInvalidCredentials: done sending email")
 
     def getTimelineFeed(self, amount=20):
         self.logger.info("Trying to get %s items from timeline feed" % amount)
