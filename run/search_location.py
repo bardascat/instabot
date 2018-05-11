@@ -37,6 +37,7 @@ if not result:
 else:
     for item in result:
         r = {}
+        r['address']=item['subtitle']
         r['id'] = item['location']['pk']
         r['name'] = item['title']
         parsedResult.append(r)
