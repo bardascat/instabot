@@ -305,6 +305,7 @@ class API(object):
         else:
             self.LastResponse = response
             details = None
+            self.LastJson = self.loadJson(response.text)
             responseInfo = response.text
             self.logger.info("sendRequest: Request error url: %s: ", config.API_URL + endpoint)
 

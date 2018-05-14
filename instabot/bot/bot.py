@@ -688,15 +688,20 @@ class Bot(API):
                 self.logger.info("startLikeForLike: Going to like id_post: %s", post['id_post'])
                 wasPostLiked = self.like(post['instagram_post_id'])
                 
-                #update the log
-                api_db.insert("INSERT INTO `user_post_log` (`id_post`, `id_user`, `like_timestamp`,`liked`) VALUES (%s, %s, CURRENT_TIMESTAMP, %s)", post['id_post'], self.web_application_id_user, wasPostLiked)
-                self.logger.info("startLikeForLike: user_post_log was updated")
-                
                 if wasPostLiked:
                     totalLiked=totalLiked+1
                     self.logger.info("startLikeForLike: Success: Post %s was liked !", post['id_post'])
+                    #update the log
+                    api_db.insert("INSERT INTO `user_post_log` (`id_post`, `id_user`, `like_timestamp`,`liked`) VALUES (%s, %s, CURRENT_TIMESTAMP, %s)", post['id_post'], self.web_application_id_user, wasPostLiked)
+                    self.logger.info("startLikeForLike: user_post_log was updated")
                 else:
                     self.logger.info("startLikeForLike: Error: Post %s was NOT liked",post['id_post'])
+                    if 'spam' in bot.LastJson:
+                        bot.logger.info("startLikeForLike: Last like attempt was blocked by instgram, I won't update the db !")
+                    else:
+                        #update the log
+                        api_db.insert("INSERT INTO `user_post_log` (`id_post`, `id_user`, `like_timestamp`,`liked`) VALUES (%s, %s, CURRENT_TIMESTAMP, %s)", post['id_post'], self.web_application_id_user, wasPostLiked)
+                        self.logger.info("startLikeForLike: user_post_log was updated")
                 
             iteration=iteration+1
             pause= randint(1,1)
