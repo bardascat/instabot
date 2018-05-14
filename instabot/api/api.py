@@ -337,14 +337,14 @@ class API(object):
 
                     time.sleep(sleep_minutes * 60)
                 
-                if 'message' in responseObject: 
+                elif 'message' in responseObject: 
                     
                     if responseObject['message']=="login_required":
                         details="login_required"
                         currentOperation = self.currentOperation if hasattr(self, "currentOperation") else None
                         self.logApiError(responseInfo, currentOperation, config.API_URL, endpoint, response.status_code,details)
                         raise Exception("sendRequest: The user is not logged in")
-                if 'error_type' in responseObject:
+                elif 'error_type' in responseObject:
                     currentOperation = self.currentOperation if hasattr(self, "currentOperation") else None
                     
                     
