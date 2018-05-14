@@ -320,8 +320,11 @@ class API(object):
                     "sendRequest: HTTP ERROR: STATUS %s , BODY: %s " % (str(response.status_code), response.text))
 
             if response.status_code == 400:
+                errorFound=0
                 responseObject = self.loadJson(response.text)
+                
                 if 'spam' in responseObject:
+                    errorFound=1
                     details = "spam"
                     #if self.bot_type=="like_for_like":
                         #self.logger.warning("sendRequest: BOT IS BLOCKED. Going to exit like for like process. Reponse %s", responseObject)
@@ -338,24 +341,27 @@ class API(object):
 
                     time.sleep(sleep_minutes * 60)
                 
-                elif 'message' in responseObject: 
+                if 'message' in responseObject: 
                     
                     if responseObject['message']=="login_required":
+                        errorFound=1
                         details="login_required"
                         currentOperation = self.currentOperation if hasattr(self, "currentOperation") else None
                         self.logApiError(responseInfo, currentOperation, config.API_URL, endpoint, response.status_code,details)
                         raise Exception("sendRequest: The user is not logged in")
-                elif 'error_type' in responseObject:
+                if 'error_type' in responseObject:
                     currentOperation = self.currentOperation if hasattr(self, "currentOperation") else None
                     
                     
                     if responseObject['error_type'] == 'sentry_block':
+                        errorFound=1
                         details="sentry_block"
                         self.logger.warning("sendRequest: ********** FATAL ERROR ************* sentry_block")
                         self.logApiError(responseInfo, currentOperation, config.API_URL, endpoint,response.status_code, details)
                         raise Exception("sendRequest: ********** FATAL ERROR ************* sentry_block")
                         
                     if responseObject['error_type'] == 'ip_block':
+                        errorFound=1
                         details="ip_block"
                         self.logger.warning("sendRequest: ********** FATAL ERROR ************* ip_block")
                         self.logApiError(responseInfo, currentOperation, config.API_URL, endpoint,response.status_code, details)
@@ -364,21 +370,25 @@ class API(object):
                     self.logApiError(responseInfo, currentOperation, config.API_URL, endpoint,response.status_code, details)
                     
                     if responseObject['error_type'] == 'checkpoint_challenge_required':
+                        errorFound=1
                         self.logger.warning("sendRequest: Instagram requries phone verification")
                         self.notifyUserToVerifyInstagramAccount()
                         raise Exception("sendRequest: Instagram requires phone verification")
+                        
 
                     if responseObject['error_type'] == 'invalid_user':
+                        errorFound=1
                         self.logger.warning("sendRequest: Invalid instagram user")
                         self.notifyUserInvalidCredentials()
                         raise Exception("sendRequest: Invalid instagram username")
 
                     if responseObject['error_type'] == 'bad_password':
+                        errorFound=1
                         self.logger.warning("sendRequest: Invalid instagram password")
                         self.notifyUserInvalidCredentials()
                         raise Exception("sendRequest: Invalid instagram password")
 
-                else:
+                if errorFound==0:
                     sleep_minutes = 1
                     self.logger.warning("Request return 400 error. Going to sleep %s minutes" % sleep_minutes)
                     # don t sleep on login fail
