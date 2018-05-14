@@ -68,7 +68,7 @@ def get_recent_user_medias(self, instagram_user_id, recentThan):
     medias = self.get_user_medias(user_id=instagram_user_id, filtration=False)
     
     if len(medias)==0:
-        self.logger.info("get_recent_user_medias: 0 medias received for user %s. Going to return", user_id)
+        self.logger.info("get_recent_user_medias: 0 medias received for user with instagra id: %s. Going to return", instagram_user_id)
         return 0
         
     self.logger.info("get_recent_user_medias: Going to validate %d posts recent than %s" % (len(medias), recentThan))
