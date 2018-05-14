@@ -21,7 +21,7 @@ if args.settings is None:
 result = {}
 try:
     settings=json.loads(args.settings)
-    bot = Bot(id_campaign=str(settings['id_campaign']), multiple_ip=True, hide_output=True)
+    bot = Bot(id_campaign=str(settings['id_campaign']), multiple_ip=True, hide_output=True, bot_type="verify_account")
     bot.logger.info("verify_account:Going to verify the account... username %s, password %s" % (settings['u'], settings['p']))
     status = bot.login(username=settings['u'], password=settings['p'], force=True, storage=False)
     result["status"] = True

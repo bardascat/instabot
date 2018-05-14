@@ -617,7 +617,7 @@ class Bot(API):
         self.logger.info("startScanUserFeed: Started !")
         iteration=0
         while True:
-            result = api_db.select("select distinct users.id_user,email,instagram_username,campaign.id_campaign, user_subscription.start_date from users join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user) where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 order by rand()");
+            result = api_db.select("select distinct users.id_user,email,instagram_username,campaign.id_campaign, user_subscription.start_date from users join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user) where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 and campaign.instagram_verified=1 order by rand()")
             
             self.logger.info("startScanUserFeed:Found %s users", len(result))
             
@@ -696,8 +696,8 @@ class Bot(API):
                     self.logger.info("startLikeForLike: user_post_log was updated")
                 else:
                     self.logger.info("startLikeForLike: Error: Post %s was NOT liked",post['id_post'])
-                    if 'spam' in bot.LastJson:
-                        bot.logger.info("startLikeForLike: Last like attempt was blocked by instgram, I won't update the db !")
+                    if 'spam' in self.LastJson:
+                        self.logger.info("startLikeForLike: Last like attempt was blocked by instgram, I won't update the db !")
                     else:
                         #update the log
                         api_db.insert("INSERT INTO `user_post_log` (`id_post`, `id_user`, `like_timestamp`,`liked`) VALUES (%s, %s, CURRENT_TIMESTAMP, %s)", post['id_post'], self.web_application_id_user, wasPostLiked)

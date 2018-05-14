@@ -432,7 +432,12 @@ class API(object):
             self.logger.info("notifyUserToVerifyInstagramAccount: done sending email")
 
     def notifyUserInvalidCredentials(self):
-        if self.bot_type != "like_for_like":
+        self.logger.info("notifyUserInvalidCredentials: bot type is %s",self.bot_type)
+
+        #set instagram verified to 0
+        insert("update campaign set instagram_verified=0,active=0 where id_campaign=%s",self.id_campaign)
+
+        if self.bot_type != "like_for_like" and self.bot_type!="verify_account":
             self.logger.info(
                 "notifyUserInvalidCredentials: Going to send mail to user id: %s to regarding invalid credentials",
                 self.web_application_id_user)
