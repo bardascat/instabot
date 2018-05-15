@@ -16,7 +16,7 @@ logger.addHandler(ch)
 
 def killProcess(pid):
 	logger.info("killProcess: killing process: %s",pid)
-	os.kill(pid, signal.SIGTERM) 
+	os.kill(pid, signal.SIGKILL) 
 
 def stopProcesses():
 	logger.info("stopProcesses:Searching process...")
