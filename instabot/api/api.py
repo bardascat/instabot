@@ -388,7 +388,7 @@ class API(object):
                         self.notifyUserInvalidCredentials()
                         raise Exception("sendRequest: Invalid instagram password")
 
-                if errorFound==0:
+                if errorFound==0 and self.bot_type!="scan_user_feed":
                     sleep_minutes = 1
                     self.logger.warning("Request return 400 error. Going to sleep %s minutes" % sleep_minutes)
                     # don t sleep on login fail
