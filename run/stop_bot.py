@@ -33,7 +33,13 @@ def stopProcesses():
 				logger.info("stopProcesses: Going to sleep %s until killing the next bot", sleep_minutes)
 				time.sleep(sleep_minutes*60)
 				
-				
+	
+	logger.info("final cleanup, going to kill hanging procesess")
+	os.system(" ps aux  |  grep -i angie_idc  |  awk '{print $2}'  |  xargs  kill -9")
+	os.system("ps aux  |  grep -i angie_instapy |  awk '{print $2}'  |  xargs  kill -9")
+	os.system("ps aux  |  grep -i chrome |  awk '{print $2}'  |  xargs  kill -9")
+	logger.info("final cleanup done...")
+	
 	logger.info("stopProcesses: DONE")
 
 stopProcesses()
