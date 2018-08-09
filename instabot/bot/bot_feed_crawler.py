@@ -53,7 +53,7 @@ class BotFeedCrawler:
             "scanUser:  %s has instagram id %s" % (user['instagram_username'], instagramUserId))
 
         if instagramUserId is None:
-            self.logger.warning("scanUser:  Error: Userid is none, going to skip this user: %s...", user['email'])
+            self.logger.warning("scanUser:  ERROR: Userid is none, probably the instagram username is invalid. Going to skip this user: %s...", user['email'])
             return False
 
         self.logger.info("scanUser: Getting last post inserted in database for user %s", user['email'])
@@ -77,7 +77,8 @@ class BotFeedCrawler:
         if len(medias) > 0:
             for media in medias:
                 taken_at = datetime.datetime.fromtimestamp(int(media['taken_at']))
-                api_db.insert("insert into user_post (id_campaign,id_user,instagram_post_id,timestamp) values (%s, %s, %s, %s)", user['id_campaign'], user['id_user'], media['pk'], taken_at)
+                api_db.insert(
+                    "insert into user_post (id_campaign,id_user,instagram_post_id,code,timestamp) values (%s, %s, %s, %s, %s)", user['id_campaign'], user['id_user'], media['pk'], str(media['code']), taken_at)
             self.logger.info("scanUser: All posts were inserted in database.")
 
         self.logger.info("scanUser---------------------DONE scanning user's %s feed--------------------------",user['email'])
