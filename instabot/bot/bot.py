@@ -629,7 +629,7 @@ class Bot(API):
                     continue
                 
                 instagramUserId=self.get_userid_from_username(user['instagram_username'])
-                self.logger.info("startScanUserFeed:  %s has instagram id %s" % (user['instagram_username'], instagramUserId))
+                self.logger.error("startScanUserFeed:  %s has instagram id %s" % (user['instagram_username'], instagramUserId))
                 
                 if instagramUserId is None:
                     self.logger.warning("startScanUserFeed:  Error: Userid is none, going to skip this user...")
@@ -652,7 +652,7 @@ class Bot(API):
                 if len(medias)>0:
                     for media in medias:
                         taken_at = datetime.datetime.fromtimestamp(int(media['taken_at']))
-                        api_db.insert("insert into user_post (id_campaign,id_user,instagram_post_id,code,timestamp) values (%s, %s, %s, %s)", user['id_campaign'], user['id_user'], media['pk'], media['code'], taken_at)
+                        api_db.insert("insert into user_post (id_campaign,id_user,instagram_post_id,code,timestamp) values (%s, %s, %s, %s, %s)", user['id_campaign'], user['id_user'], media['pk'], str(media['code']), taken_at)
                     self.logger.info("startScanUserFeed: All posts were inserted in database.")
                 
                 pause = randint(2,3)

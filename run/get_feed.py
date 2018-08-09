@@ -34,11 +34,8 @@ try:
 
     status = bot.login(username=campaign['username'], password=campaign['password'])
 
-    if status != True:
-        bot.logger.info("like_for_like: Could not login, going to exit !")
-        exit()
-
-    feed = bot.like(1730534584884666388)
+    
+    medias = bot.get_user_medias(bot.get_userid_from_username('gloriaagency'))
 
 
 except SystemExit:
