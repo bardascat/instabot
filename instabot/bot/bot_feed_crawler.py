@@ -96,6 +96,7 @@ class BotFeedCrawler:
         if crawlerIndex==noCrawlers-1:
             count = totalUsers - offset
 
+
         self.logger.info("getUsersToScan: Crawler Index:%s, Total Users:%s, offset:%s, count:%s" % (crawlerIndex, totalUsers, offset, count))
 
         query = "select * from users join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user) where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 and campaign.instagram_verified=1 order by users.id_user asc limit %s,%s"
