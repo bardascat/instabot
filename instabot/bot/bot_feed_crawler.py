@@ -99,7 +99,7 @@ class BotFeedCrawler:
 
         self.logger.info("getUsersToScan: Crawler Index:%s, Total Users:%s, offset:%s, count:%s" % (crawlerIndex, totalUsers, offset, count))
 
-        query = "select * from users join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user) where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 and campaign.instagram_verified=1 order by users.id_user asc limit %s,%s"
+        query = "select * from users join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user) where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 order by users.id_user asc limit %s,%s"
 
         users = api_db.select(query, offset, count)
 
@@ -118,9 +118,10 @@ class BotFeedCrawler:
         self.logger.info("getNumberOfCrawlerBots: Found %s crawlers", result['no_crawlers'])
         return result['no_crawlers']
 
+    #returns users that eligible for scanning. Basicallt users with an active subscription and campaign is active
     def getTotalEligibleUsers(self):
 
-        query = "select count(*) as total_users from users join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user) where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 and campaign.instagram_verified=1";
+        query = "select count(*) as total_users from users join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user) where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1";
         result = api_db.fetchOne(query)
 
         self.logger.info("getTotalEligibleUsers: Found a total of %s users that need to be split.", result['total_users'])
