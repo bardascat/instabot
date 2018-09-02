@@ -105,7 +105,7 @@ class API(object):
         blockLimit=12
         self.logger.info("canUserLogin: Checking if user with campaign: %s can loggin...", id_campaign)
         
-        result = fetchOne("select count(*) as total_blocks from instagram_log join campaign using(id_user) where date(instagram_log.timestamp)=CURDATE() and id_campaign=%s and (details='spam' or details='sentry_block' or details='ip_block')", id_campaign)
+        result = fetchOne("select count(*) as total_blocks from bot_log join campaign using(id_user) where date(bot_log.timestamp)=CURDATE() and id_campaign=%s and (details='spam' or details='sentry_block' or details='ip_block')", id_campaign)
         if result['total_blocks']>=blockLimit:
             self.logger.info("canUserLogin: Error: User cannot login because it was blocked more than %s times today. Actual block %s" % (blockLimit, result['total_blocks']))
             return False
@@ -415,7 +415,7 @@ class API(object):
 
     def logApiError(self, responseInfo, currentOperation, apiUrl, endpoint,statusCode, details):
         insert(
-            "insert into instagram_log (id_user,log,operation,request,http_status,details,timestamp) values (%s,%s,%s,%s,%s,%s,now())",
+            "insert into bot_log (id_user,log,operation,request,http_status,details,timestamp) values (%s,%s,%s,%s,%s,%s,now())",
             self.web_application_id_user, responseInfo, currentOperation, apiUrl + endpoint,
             str(statusCode), details)
 

@@ -86,7 +86,7 @@ def getBotOperations(self, id_campaign):
 def get_spam_delay(self):
     self.logger.info("get_spam_delay: Calculating the spam delay")
     self.logger.info("get_spam_delay: Getting amounts of times the user %s was blocked", self.web_application_id_user)
-    result = api_db.fetchOne("select count(*) as total from instagram_log where id_user=%s and details='spam' and date(timestamp)=curdate()", self.web_application_id_user)
+    result = api_db.fetchOne("select count(*) as total from bot_log where id_user=%s and details='spam' and date(timestamp)=curdate()", self.web_application_id_user)
     if result['total']>=12:
         self.logger.info("get_spam_delay: There were more than 12 blocks today, going to stop the bot")
         raise Exception("get_spam_delay: More than 12 blocks today")
