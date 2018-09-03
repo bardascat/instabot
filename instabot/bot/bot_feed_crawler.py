@@ -23,7 +23,6 @@ class BotFeedCrawler:
             self.logger.info("scanUsers: Going to scan %s users", len(users))
 
             for user in users:
-
                 self.scanUser(user)
 
                 pause = randint(2, 3)
@@ -37,10 +36,10 @@ class BotFeedCrawler:
 
         self.logger.info("startScanUserFeed: Done scanning users feed, going to exit !")
 
-
     def scanUser(self, user):
 
-        self.logger.info("scanUser---------------------Going to scan user's %s feed--------------------------", user['email'])
+        self.logger.info("scanUser---------------------Going to scan user's %s feed--------------------------",
+                         user['email'])
 
         if user['instagram_username'] is None:
             self.logger.warning(
@@ -53,11 +52,14 @@ class BotFeedCrawler:
             "scanUser:  %s has instagram id %s" % (user['instagram_username'], instagramUserId))
 
         if instagramUserId is None:
-            self.logger.warning("scanUser:  ERROR: Userid is none, probably the instagram username is invalid. Going to skip this user: %s...", user['email'])
+            self.logger.warning(
+                "scanUser:  ERROR: Userid is none, probably the instagram username is invalid. Going to skip this user: %s...",
+                user['email'])
             return False
 
         self.logger.info("scanUser: Getting last post inserted in database for user %s", user['email'])
-        lastPost = api_db.fetchOne("select * from user_post where id_user=%s order by timestamp DESC limit 1",user['id_user'])
+        lastPost = api_db.fetchOne("select * from user_post where id_user=%s order by timestamp DESC limit 1",
+                                   user['id_user'])
 
         self.logger.info("scanUser: Last post is %s", lastPost)
 
@@ -72,17 +74,20 @@ class BotFeedCrawler:
                              recentThan)
 
         medias = self.instabot.get_recent_user_medias(instagramUserId, recentThan)
-        self.logger.info("scanUser:  Found %s medias for user %s, going to save them in database." % (len(medias), user['email']))
+        self.logger.info(
+            "scanUser:  Found %s medias for user %s, going to save them in database." % (len(medias), user['email']))
 
         if len(medias) > 0:
             for media in medias:
                 taken_at = datetime.datetime.fromtimestamp(int(media['taken_at']))
                 api_db.insert(
-                    "insert into user_post (id_campaign,id_user,instagram_post_id,code,timestamp) values (%s, %s, %s, %s, %s)", user['id_campaign'], user['id_user'], media['pk'], str(media['code']), taken_at)
+                    "insert into user_post (id_campaign,id_user,instagram_post_id,code, crawler, timestamp) values (%s, %s, %s, %s, %s)",
+                    user['id_campaign'], user['id_user'], media['pk'], str(media['code']), self.campaign['id_user'],
+                    taken_at)
             self.logger.info("scanUser: All posts were inserted in database.")
 
-        self.logger.info("scanUser---------------------DONE scanning user's %s feed--------------------------",user['email'])
-
+        self.logger.info("scanUser---------------------DONE scanning user's %s feed--------------------------",
+                         user['email'])
 
     def getUsersToScan(self):
 
@@ -93,11 +98,11 @@ class BotFeedCrawler:
         offset = crawlerIndex * usersPersCrawler
         count = usersPersCrawler
 
-        if crawlerIndex==noCrawlers-1:
+        if crawlerIndex == noCrawlers - 1:
             count = totalUsers - offset
 
-
-        self.logger.info("getUsersToScan: Crawler Index:%s, Total Users:%s, offset:%s, count:%s" % (crawlerIndex, totalUsers, offset, count))
+        self.logger.info("getUsersToScan: Crawler Index:%s, Total Users:%s, offset:%s, count:%s" % (
+        crawlerIndex, totalUsers, offset, count))
 
         query = "select * from users join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user) where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 order by users.id_user asc limit %s,%s"
 
@@ -109,24 +114,22 @@ class BotFeedCrawler:
 
         return users
 
-
-
     def getNumberOfCrawlerBots(self):
-        query="select count(*) as no_crawlers from campaign where bot_type like 'crawler'";
+        query = "select count(*) as no_crawlers from campaign where bot_type like 'crawler'";
         result = api_db.fetchOne(query)
 
         self.logger.info("getNumberOfCrawlerBots: Found %s crawlers", result['no_crawlers'])
         return result['no_crawlers']
 
-    #returns users that eligible for scanning. Basicallt users with an active subscription and campaign is active
+    # returns users that eligible for scanning. Basicallt users with an active subscription and campaign is active
     def getTotalEligibleUsers(self):
 
         query = "select count(*) as total_users from users join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user) where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1";
         result = api_db.fetchOne(query)
 
-        self.logger.info("getTotalEligibleUsers: Found a total of %s users that need to be split.", result['total_users'])
+        self.logger.info("getTotalEligibleUsers: Found a total of %s users that need to be split.",
+                         result['total_users'])
         return result['total_users']
-
 
     def getCrawlerIndex(self):
         sql = "SELECT username FROM `campaign` WHERE bot_type='crawler' order by id_campaign asc"
@@ -137,9 +140,6 @@ class BotFeedCrawler:
             if bot['username'] == self.campaign['username']:
                 self.logger.info("getBotIndex: Bot %s has index: %s", bot['username'])
                 return index
-            index = index+1
+            index = index + 1
 
         raise Exception("getBotIndex: User %s is not a crawler bot", self.campaign['username'])
-
-
-

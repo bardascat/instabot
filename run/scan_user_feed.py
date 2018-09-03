@@ -19,8 +19,7 @@ parser = argparse.ArgumentParser(add_help=True)
 parser.add_argument('-angie_campaign', type=str, help="angie_campaign")
 args = parser.parse_args()
 
-
-#args.angie_campaign = 273
+# args.angie_campaign = 273
 
 if args.angie_campaign is None:
     exit("dispatcher: Error: Campaign id it is not specified !")
@@ -43,13 +42,15 @@ def canProcessStart(processName):
 
 try:
 
-    campaign = api_db.fetchOne("select username,password,campaign.timestamp,id_campaign,id_user, bot_type from campaign where id_campaign=%s",args.angie_campaign)
+    campaign = api_db.fetchOne(
+        "select username,password,campaign.timestamp,id_campaign,id_user, bot_type from campaign where id_campaign=%s",
+        args.angie_campaign)
 
     if campaign is None:
         raise Exception("Could not find campaign for bot user %s", campaign['username'])
 
-    if campaign['bot_type']!="crawler":
-        raise Exception("Error: user %s is not a crawler bot, is: %s" %  (campaign['username'], campaign['bot_type']))
+    if campaign['bot_type'] != "crawler":
+        raise Exception("Error: user %s is not a crawler bot, is: %s" % (campaign['username'], campaign['bot_type']))
 
     bot = Bot(
         id_campaign=str(campaign['id_campaign']),
@@ -57,7 +58,7 @@ try:
         bot_type="scan_user_feed"
     )
 
-    processName = "angie_scan_user_feed_"+str(campaign['id_campaign'])
+    processName = "angie_scan_user_feed_" + str(campaign['id_campaign'])
     bot.logger.info("angie_scan_user_feed: checking if there is already a process started with name: %s", processName)
     canStart = canProcessStart(processName)
 
@@ -73,7 +74,7 @@ try:
             bot.logger.info("scan_user_feed: Could not login, going to exit !")
             exit()
 
-        crawler = BotFeedCrawler(bot,campaign)
+        crawler = BotFeedCrawler(bot, campaign)
         crawler.scanUsers()
 
 
