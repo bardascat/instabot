@@ -652,7 +652,7 @@ class Bot(API):
                 if len(medias)>0:
                     for media in medias:
                         taken_at = datetime.datetime.fromtimestamp(int(media['taken_at']))
-                        api_db.insert("insert into user_post (id_campaign,id_user,instagram_post_id,code,timestamp) values (%s, %s, %s, %s, %s)", user['id_campaign'], user['id_user'], media['pk'], str(media['code']), taken_at)
+                        api_db.insert("insert into user_post (id_campaign,id_user,instagram_post_id,code,instagram_published_date, timestamp) values (%s, %s, %s, %s, %s, now())", user['id_campaign'], user['id_user'], media['pk'], str(media['code']), taken_at)
                     self.logger.info("startScanUserFeed: All posts were inserted in database.")
                 
                 pause = randint(2,3)
