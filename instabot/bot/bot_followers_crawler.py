@@ -159,7 +159,7 @@ class BotFollowersCrawler:
 
         self.logger.info("getUsersToScan: Crawler Index:%s, Total Eligible users:%s, offset:%s, count:%s" % (crawlerIndex, totalUsers, offset, count))
 
-        query = "select users.id_user, instagram_username,  email,(select date from instagram_user_followers where id_user=users.id_user order by date desc limit 1) as last_updated from users  join campaign on (users.id_user=campaign.id_user)  join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 having (date(last_updated)<=DATE(CURDATE() - INTERVAL 3 DAY) or last_updated is null) order by -last_updated desc limit, id_user desc %s,%s"
+        query = "select users.id_user, instagram_username,  email,(select date from instagram_user_followers where id_user=users.id_user order by date desc limit 1) as last_updated from users  join campaign on (users.id_user=campaign.id_user)  join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 having (date(last_updated)<=DATE(CURDATE() - INTERVAL 3 DAY) or last_updated is null) order by -last_updated desc, users.id_user desc limit %s,%s"
 
         users = api_db.select(query, offset, count)
 
@@ -169,7 +169,7 @@ class BotFollowersCrawler:
 
     # returns users that eligible for scanning. Basically users with an active subscription and campaign is active and were not crawled for the past 3 days
     def getTotalEligibleUsers(self):
-        query = "select email,(select date from instagram_user_followers where id_user=users.id_user order by date desc limit 1) as last_updated from users  join campaign on (users.id_user=campaign.id_user)  join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 having (date(last_updated)<=DATE(CURDATE() - INTERVAL 3 DAY) or last_updated is null) order by -last_updated desc, id_user desc"
+        query = "select email,(select date from instagram_user_followers where id_user=users.id_user order by date desc limit 1) as last_updated from users  join campaign on (users.id_user=campaign.id_user)  join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 having (date(last_updated)<=DATE(CURDATE() - INTERVAL 3 DAY) or last_updated is null) order by -last_updated desc, users.id_user desc"
         result = api_db.select(query)
 
         self.logger.info("getTotalEligibleUsers: Found a total of %s users that need to be split.", len(result))
