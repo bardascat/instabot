@@ -52,7 +52,7 @@ class BotFollowersCrawler:
             self.logger.warning("scanUser:  ERROR: Userid is none, probably the instagram username is invalid. Going to skip this user: %s...",user['email'])
             return False
 
-        #cleanup other unsuccessfully scans
+        #cleanup other unsuccessfull scans
         self.removeFollowersFromToday(owner_instagram_username=user['instagram_username'])
 
         foundFollowers = self.crawlFollowers(usernameId=instagramUserId, instagram_username=user['instagram_username'])
@@ -158,6 +158,10 @@ class BotFollowersCrawler:
 
         if crawlerIndex == noCrawlers - 1:
             count = totalUsers - offset
+
+        maxFollowersPerBot = 15
+        if count > maxFollowersPerBot:
+            raise Exception("Too many followers for bot %s. max value is set to: %s, actual: %s" % (self.campaign['username'], maxFollowersPerBot, count))
 
         self.logger.info("getUsersToScan: Crawler Index:%s, Total Eligible Users:%s, offset:%s, count:%s" % (crawlerIndex, totalUsers, offset, count))
 
