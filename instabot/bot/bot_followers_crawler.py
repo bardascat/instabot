@@ -102,7 +102,7 @@ class BotFollowersCrawler:
         securityBreak = 0
         next_max_id = None
 
-        while securityBreak < 100:
+        while securityBreak < 200:
             followers = []
 
             if next_max_id == None:
@@ -144,7 +144,7 @@ class BotFollowersCrawler:
             self.logger.info("Sleeping %s seconds" % sleep_time)
             time.sleep(sleep_time)
 
-        self.logger.warning("crawlFollowers:  ERROR: did not retrieve the total followers. Stopped at iteration: %s. Followers scanned:" % (securityBreak, len(followers)))
+        self.logger.warning("crawlFollowers:  ERROR: did not retrieve the total followers. Stopped at iteration: %s. Followers scanned: %s" % (securityBreak, len(followers)))
 
         return None
 
