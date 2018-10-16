@@ -155,7 +155,7 @@ class BotFollowersCrawler:
         offset = crawlerIndex * usersPersCrawler
         count = usersPersCrawler + offset
         if crawlerIndex == noCrawlers - 1:
-            count = totalUsers - offset
+            count = totalUsers
 
         maxFollowersPerBot = 15
         if count > maxFollowersPerBot:
