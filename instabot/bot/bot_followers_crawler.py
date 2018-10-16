@@ -62,7 +62,7 @@ class BotFollowersCrawler:
             self.removeFollowersFromToday(user['instagram_username'])
         else:
             self.logger.info("scanUser: COMPLETED SCANNING FOR USER %s. Found %s followers." % (user['instagram_username'], foundFollowers))
-            api_db.insert("insert into instagram_user_followers (id_user, followers_count) values (%s, %s)", user['id_user'], foundFollowers)
+            api_db.insert("insert into instagram_user_followers (id_user, id_bot, followers_count) values (%s, %s)", user['id_user'], self.campaign['id_user'], foundFollowers)
 
         return foundFollowers
 
@@ -92,8 +92,7 @@ class BotFollowersCrawler:
         self.logger.info("removeFollowers: for user %s, between %s and %s" % (owner_instagram_username, gte, lte))
         client = self.getDatabaseConnection()
         db = client.angie_app
-        db.user_followers.remove(
-            {"owner_instagram_username": owner_instagram_username, "created_at": {"$gte": gte, "$lte": lte}})
+        db.user_followers.remove({"owner_instagram_username": owner_instagram_username, "created_at": {"$gte": gte, "$lte": lte}})
         client.close()
         self.logger.info("removeFollowers:done removing")
 
@@ -150,16 +149,19 @@ class BotFollowersCrawler:
         return None
 
     def getUsersToScan(self):
+        noCrawlers = self.getNumberOfCrawlerBots()
         totalUsers = self.getTotalEligibleUsers()
         crawlerIndex = self.getCrawlerIndex()
-        usersPersCrawler = 15
-
+        usersPersCrawler = totalUsers // noCrawlers
         offset = crawlerIndex * usersPersCrawler
         count = usersPersCrawler
 
-        self.logger.info("getUsersToScan: Crawler Index:%s, Total Eligible users:%s, offset:%s, count:%s" % (crawlerIndex, totalUsers, offset, count))
+        if crawlerIndex == noCrawlers - 1:
+            count = totalUsers - offset
 
-        query = "select users.id_user, instagram_username,  email,(select date from instagram_user_followers where id_user=users.id_user order by date desc limit 1) as last_updated from users  join campaign on (users.id_user=campaign.id_user)  join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 having (date(last_updated)<=DATE(CURDATE() - INTERVAL 3 DAY) or last_updated is null) order by -last_updated desc, users.id_user desc limit %s,%s"
+        self.logger.info("getUsersToScan: Crawler Index:%s, Total Eligible Users:%s, offset:%s, count:%s" % (crawlerIndex, totalUsers, offset, count))
+
+        query = "select users.id_user, instagram_username,  email,(select date from instagram_user_followers where id_user=users.id_user order by date desc limit 1) as last_updated from users  join campaign on (users.id_user=campaign.id_user)  join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 having (date(last_updated)<DATE(CURDATE() - INTERVAL 0 DAY) or last_updated is null) order by -last_updated desc, users.id_user desc limit %s,%s"
 
         users = api_db.select(query, offset, count)
 
@@ -169,7 +171,7 @@ class BotFollowersCrawler:
 
     # returns users that eligible for scanning. Basically users with an active subscription and campaign is active and were not crawled for the past 3 days
     def getTotalEligibleUsers(self):
-        query = "select email,(select date from instagram_user_followers where id_user=users.id_user order by date desc limit 1) as last_updated from users  join campaign on (users.id_user=campaign.id_user)  join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 having (date(last_updated)<=DATE(CURDATE() - INTERVAL 3 DAY) or last_updated is null) order by -last_updated desc, users.id_user desc"
+        query = "select email,(select date from instagram_user_followers where id_user=users.id_user order by date desc limit 1) as last_updated from users  join campaign on (users.id_user=campaign.id_user)  join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 having (date(last_updated)<DATE(CURDATE() - INTERVAL 0 DAY) or last_updated is null) order by -last_updated desc, users.id_user desc"
         result = api_db.select(query)
 
         self.logger.info("getTotalEligibleUsers: Found a total of %s users that need to be split.", len(result))
@@ -187,3 +189,11 @@ class BotFollowersCrawler:
             index = index + 1
 
         raise Exception("getBotIndex: User %s is not a crawler bot", self.campaign['username'])
+
+    def getNumberOfCrawlerBots(self):
+        query = "select count(*) as no_crawlers from campaign where bot_type like 'followers_crawler'"
+        result = api_db.fetchOne(query)
+
+        self.logger.info("getNumberOfCrawlerBots: Found %s crawlers of type followers_crawler", result['no_crawlers'])
+        return result['no_crawlers']
+
