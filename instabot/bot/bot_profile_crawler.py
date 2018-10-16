@@ -2,6 +2,7 @@
 import json
 import time
 from random import randint
+from datetime import datetime, timedelta
 
 from instabot.api import api_db
 
@@ -54,7 +55,9 @@ class BotProfileCrawler:
 
         status = self.instabot.getUsernameInfo(usernameId=instagramUserId)
         if status is True:
-            api_db.insert("insert into instagram_user_followers (id_bot, id_user, followers_count, following_count,json) values (%s, %s, %s, %s, %s)", self.campaign['id_user'], user['id_user'], self.instabot.LastJson['user']['follower_count'],self.instabot.LastJson['user']['following_count'], json.dumps(self.instabot.LastJson))
+            d = datetime.today() - timedelta(days=1)
+            endOfDay = d.replace(minute=59, hour=23, second=59, microsecond=59)
+            api_db.insert("insert into instagram_user_followers (id_bot, id_user, followers_count, following_count,json, date) values (%s, %s, %s, %s, %s, %s)", self.campaign['id_user'], user['id_user'], self.instabot.LastJson['user']['follower_count'],self.instabot.LastJson['user']['following_count'], json.dumps(self.instabot.LastJson), endOfDay)
 
     def getUsersToScan(self):
         eligibleUsers = self.getEligibleUsers()
