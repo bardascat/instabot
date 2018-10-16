@@ -70,6 +70,8 @@ class API(object):
             filename = time.strftime("%d.%m.%Y") + "_scan_feed.log"
         elif bot_type=="scan_user_followers":
             filename = time.strftime("%d.%m.%Y") + "_scan_user_followers.log"
+        elif bot_type=="_scan_user_profile":
+            filename = time.strftime("%d.%m.%Y") + "_scan_user_profile.log"
         else:
             filename = time.strftime("%d.%m.%Y") + ".log"
 
@@ -390,7 +392,7 @@ class API(object):
                         self.notifyUserInvalidCredentials()
                         raise Exception("sendRequest: Invalid instagram password")
 
-                if errorFound==0 and self.bot_type!="scan_user_feed":
+                if errorFound==0 and self.bot_type!="scan_user_feed" and self.bot_type!="scan_user_profile" and self.bot_type!="scan_user_followers":
                     sleep_minutes = 1
                     self.logger.warning("Request return 400 error. Going to sleep %s minutes" % sleep_minutes)
                     # don t sleep on login fail

@@ -53,18 +53,27 @@ class BotFollowersCrawler:
             return False
 
         #cleanup other unsuccessfull scans
-        self.removeFollowersFromToday(owner_instagram_username=user['instagram_username'])
+        #self.removeFollowersFromToday(owner_instagram_username=user['instagram_username'])
 
-        foundFollowers = self.crawlFollowers(usernameId=instagramUserId, instagram_username=user['instagram_username'])
+        followers = self.crawlFollowers(usernameId=instagramUserId, instagram_username=user['instagram_username'])
 
-        if foundFollowers is False:
-            self.logger.info("scanUser: Could not retrieve the entire list of followers, going to revert the transaction")
-            self.removeFollowersFromToday(user['instagram_username'])
+        if followers is False:
+            self.logger.info("scanUser: ERROR:  Could not retrieve the entire list of followers, going to skip this user.")
+            #self.removeFollowersFromToday(user['instagram_username'])
+            return False
         else:
-            self.logger.info("scanUser: COMPLETED SCANNING FOR USER %s. Found %s followers." % (user['instagram_username'], foundFollowers))
-            api_db.insert("insert into instagram_user_followers (id_user, id_bot, followers_count) values (%s, %s)", user['id_user'], self.campaign['id_user'], foundFollowers)
+            self.logger.info("scanUser: COMPLETED SCANNING FOR USER %s. Found %s followers." % (user['instagram_username'], len(followers)))
+            self.logger.info("scanUser: Saving followers in database")
+            self.insertFollowers({
+                "owner_instagram_username" : user['instagram_username'],
+                "owner_id": user['id_user'],
+                "id_crawler": self.campaign['id_user'],
+                "crawled_at": datetime.datetime.now(),
+                "followers": followers
+            })
+            self.logger.info("scanUser: done saving")
 
-        return foundFollowers
+            return True
 
 
     def getDatabaseConnection(self):
@@ -75,7 +84,7 @@ class BotFollowersCrawler:
         self.logger.info("insertFollowers: inserting %s followers in db..." % len(followers))
         client = self.getDatabaseConnection()
         db = client.angie_app
-        db.user_followers.insert_many(followers)
+        db.user_followers.insert(followers)
         client.close()
         self.logger.info("insertFollowers: done... ")
 
@@ -97,13 +106,13 @@ class BotFollowersCrawler:
         self.logger.info("removeFollowers:done removing")
 
     def crawlFollowers(self, usernameId, instagram_username):
-        self.logger.info("crawlFollowers: Getting followers for instagram id: %s" % (usernameId))
-        followersFound = 0
+        self.logger.info("crawlFollowers: Getting followers for user: %s" % (instagram_username))
+        followers=[]
+
         securityBreak = 0
         next_max_id = None
 
         while securityBreak < 200:
-            followers = []
 
             if next_max_id == None:
                 self.instabot.SendRequest('friendships/' + str(usernameId) + '/followers')
@@ -114,31 +123,20 @@ class BotFollowersCrawler:
 
             # the result is damaged
             if "users" not in temp:  # if no items
-                self.logger.info(
-                    "ERROR: INVALID RESPONSE: Total received %s followers for user %s" % (followersFound, usernameId))
+                self.logger.info("ERROR: INVALID RESPONSE: Total received: %s followers for user %s" % (len(followers), usernameId))
                 return False
 
             for item in temp["users"]:
-                item['owner_usernameId'] = usernameId
-                item['owner_instagram_username'] = instagram_username
-                item['created_at'] = datetime.datetime.now()
+                item['crawled_at'] = datetime.datetime.now()
                 followers.append(item)
-
             securityBreak = securityBreak + 1
-            followersFound += len(temp['users'])
 
-            self.logger.info("Iteration %s ,received %s items, total received %s followers" % (
-                securityBreak, len(temp['users']), followersFound))
-
-            self.insertFollowers(followers)
+            self.logger.info("Iteration %s ,received %s items, total received %s followers" % (securityBreak, len(temp['users']), len(followers)))
 
             if "next_max_id" not in temp:
-                self.logger.info("crawlFollowers: End of the line: Total received %s followers for user %s. going to return." % (followersFound, usernameId))
-                return followersFound
-
+                self.logger.info("crawlFollowers: End of the line: Total received %s followers for user %s. going to return." % (len(followers), usernameId))
+                return followers
             next_max_id = temp["next_max_id"]
-
-
 
             sleep_time = randint(40,60)
             self.logger.info("Sleeping %s seconds" % sleep_time)
@@ -149,12 +147,13 @@ class BotFollowersCrawler:
         return None
 
     def getUsersToScan(self):
+        eligibleUsers = self.getEligibleUsers()
         noCrawlers = self.getNumberOfCrawlerBots()
-        totalUsers = self.getTotalEligibleUsers()
+        totalUsers = len(eligibleUsers)
         crawlerIndex = self.getCrawlerIndex()
         usersPersCrawler = totalUsers // noCrawlers
         offset = crawlerIndex * usersPersCrawler
-        count = usersPersCrawler
+        count = usersPersCrawler + offset
 
         if crawlerIndex == noCrawlers - 1:
             count = totalUsers - offset
@@ -165,21 +164,38 @@ class BotFollowersCrawler:
 
         self.logger.info("getUsersToScan: Crawler Index:%s, Total Eligible Users:%s, offset:%s, count:%s" % (crawlerIndex, totalUsers, offset, count))
 
-        query = "select users.id_user, instagram_username,  email,(select date from instagram_user_followers where id_user=users.id_user order by date desc limit 1) as last_updated from users  join campaign on (users.id_user=campaign.id_user)  join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 having (date(last_updated)<DATE(CURDATE() - INTERVAL 0 DAY) or last_updated is null) order by -last_updated desc, users.id_user desc limit %s,%s"
+        users = eligibleUsers[offset:count]
 
-        users = api_db.select(query, offset, count)
+        self.logger.info("getUsersToScan: Found %s users to scan for followers for this bot.", len(eligibleUsers))
 
-        self.logger.info("getUsersToScan: Found %s users to scan for followers for this bot.", len(users))
-
+        self.logger.info("getUsersToScan: going to process the following users: %s", users)
         return users
 
     # returns users that eligible for scanning. Basically users with an active subscription and campaign is active and were not crawled for the past 3 days
-    def getTotalEligibleUsers(self):
-        query = "select email,(select date from instagram_user_followers where id_user=users.id_user order by date desc limit 1) as last_updated from users  join campaign on (users.id_user=campaign.id_user)  join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 having (date(last_updated)<DATE(CURDATE() - INTERVAL 0 DAY) or last_updated is null) order by -last_updated desc, users.id_user desc"
-        result = api_db.select(query)
+    def getEligibleUsers(self):
+        filteredUsers = []
+        usersWithActiveSubscription = "select email, instagram_username, users.id_user from users  join campaign on (users.id_user=campaign.id_user)  join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1  order by users.id_user desc"
+        users = api_db.select(usersWithActiveSubscription)
 
-        self.logger.info("getTotalEligibleUsers: Found a total of %s users that need to be split.", len(result))
-        return len(result)
+        client = self.getDatabaseConnection()
+        db = client.angie_app
+
+        #filter users that have  already been crawled today
+        for user in users:
+
+            start = datetime.datetime.now()
+            gte = start.replace(minute=0, hour=0, second=0, microsecond=0)
+
+            end = datetime.datetime.now()
+            lte = end.replace(minute=59, hour=23, second=59, microsecond=999)
+
+            wasCrawledToday = db.user_followers.find({"owner_id":user['id_user'],"created_at": {"$gte": gte, "$lte": lte}})
+            if wasCrawledToday.count() == 0:
+                filteredUsers.append(user)
+
+        client.close()
+        self.logger.info("getTotalEligibleUsers: Found a total of eligible %s users that need to be split.", len(filteredUsers))
+        return filteredUsers
 
     def getCrawlerIndex(self):
         sql = "SELECT username FROM `campaign` WHERE bot_type='followers_crawler' order by id_campaign asc"
