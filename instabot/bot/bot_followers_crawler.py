@@ -32,7 +32,7 @@ class BotFollowersCrawler:
 
             self.logger.info("----------DONE SCANNING USER %s ---------------", user['instagram_username'])
 
-            pause = randint(10, 12)
+            pause = randint(13, 16)
             self.logger.info("scanUsers: Pause for %s minutes until processing next user...", pause)
             time.sleep(pause * 60)
 
