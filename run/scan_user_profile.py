@@ -68,12 +68,12 @@ try:
     if not canStart:
         raise Exception("Error: there is already a  process with name %s. Going to exit", processName)
     else:
-        bot.logger.info("scan_user_followers: All good no other %s process is running.", processName)
+        bot.logger.info("scan_user_profile: All good no other %s process is running.", processName)
 
     status = bot.login(username=campaign['username'], password=campaign['password'])
 
     if not status:
-        bot.logger.info("scan_user_followers: Could not login, going to exit !")
+        bot.logger.info("scan_user_profile: Could not login, going to exit !")
         exit()
 
     crawler = BotProfileCrawler(bot, campaign)

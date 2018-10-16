@@ -1,10 +1,10 @@
 # TODO: maybe the work can be implemented using a single process / multithreading ?
-import time
-from random import randint, shuffle
-from pymongo import MongoClient
-from instabot.api import api_db
-import datetime
 import json
+import time
+from random import randint
+
+from instabot.api import api_db
+
 
 class BotProfileCrawler:
     def __init__(self,
