@@ -70,7 +70,7 @@ class API(object):
             filename = time.strftime("%d.%m.%Y") + "_scan_feed.log"
         elif bot_type=="scan_user_followers":
             filename = time.strftime("%d.%m.%Y") + "_scan_user_followers.log"
-        elif bot_type=="_scan_user_profile":
+        elif bot_type=="scan_user_profile":
             filename = time.strftime("%d.%m.%Y") + "_scan_user_profile.log"
         else:
             filename = time.strftime("%d.%m.%Y") + ".log"
