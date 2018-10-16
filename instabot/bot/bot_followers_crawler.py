@@ -5,7 +5,6 @@ from pymongo import MongoClient
 from instabot.api import api_db
 import datetime
 
-
 class BotFollowersCrawler:
     def __init__(self,
                  instabot,
@@ -165,6 +164,7 @@ class BotFollowersCrawler:
 
         users = eligibleUsers[offset:count]
 
+        shuffle(users)
         self.logger.info("getUsersToScan: Found %s users to scan for followers for this bot.", len(eligibleUsers))
 
         self.logger.info("getUsersToScan: going to process the following users: %s", users)

@@ -1,7 +1,7 @@
 # TODO: maybe the work can be implemented using a single process / multithreading ?
 import json
 import time
-from random import randint
+from random import randint, shuffle
 from datetime import datetime, timedelta
 
 from instabot.api import api_db
@@ -33,7 +33,7 @@ class BotProfileCrawler:
 
             self.logger.info("----------DONE SCANNING USER %s ---------------", user['instagram_username'])
 
-            pause = randint(10, 30)
+            pause = randint(10, 20)
             self.logger.info("scanUsers: Pause for %s seconds until processing next user...", pause)
             time.sleep(pause)
 
@@ -78,6 +78,7 @@ class BotProfileCrawler:
         self.logger.info("getUsersToScan: Found %s users to scan for followers for this bot.", len(eligibleUsers))
 
         self.logger.info("getUsersToScan: going to process the following users: %s", users)
+        shuffle(users)
         return users
 
     def getEligibleUsers(self):
