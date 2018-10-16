@@ -154,7 +154,6 @@ class BotFollowersCrawler:
         usersPersCrawler = totalUsers // noCrawlers
         offset = crawlerIndex * usersPersCrawler
         count = usersPersCrawler + offset
-
         if crawlerIndex == noCrawlers - 1:
             count = totalUsers - offset
 
@@ -162,7 +161,7 @@ class BotFollowersCrawler:
         if count > maxFollowersPerBot:
             raise Exception("Too many followers for bot %s. max value is set to: %s, actual: %s" % (self.campaign['username'], maxFollowersPerBot, count))
 
-        self.logger.info("getUsersToScan: Crawler Index:%s, Total Eligible Users:%s, offset:%s, count:%s" % (crawlerIndex, totalUsers, offset, count))
+        self.logger.info("getUsersToScan: Crawler Index:%s, Total Eligible Users:%s, offset:%s, count:%s, usersPerCrawler: %s" % (crawlerIndex, totalUsers, offset, count, usersPersCrawler))
 
         users = eligibleUsers[offset:count]
 
