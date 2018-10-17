@@ -53,14 +53,31 @@ class BotProfileCrawler:
             self.logger.warning("scanUser:  ERROR: Userid is none, probably the instagram username is invalid. Going to skip this user: %s...",user['email'])
             return False
 
-        status = self.instabot.getUsernameInfo(usernameId=instagramUserId)
-        if status is True:
-            d = datetime.today() - timedelta(days=1)
-            endOfDay = d.replace(minute=59, hour=23, second=59, microsecond=59)
-            api_db.insert("insert into instagram_user_followers (id_bot, id_user, followers_count, following_count,json, date) values (%s, %s, %s, %s, %s, %s)", self.campaign['id_user'], user['id_user'], self.instabot.LastJson['user']['follower_count'],self.instabot.LastJson['user']['following_count'], json.dumps(self.instabot.LastJson), endOfDay)
+        #sometimes the request is failing.
+        scanAttempts = 0
+        status = False
+        while status is not True and scanAttempts < 4:
+            self.logger.info("scanUser: Scanning %s, attempt: %s" % (user['instagram_username'], scanAttempts))
+            status = self.instabot.getUsernameInfo(usernameId=instagramUserId)
+            scanAttempts += 1
+            if status is True:
+                d = datetime.today() - timedelta(days=1)
+                endOfDay = d.replace(minute=59, hour=23, second=59, microsecond=59)
+                api_db.insert("insert into instagram_user_followers (id_bot, id_user, followers_count, following_count,json, date) values (%s, %s, %s, %s, %s, %s)", self.campaign['id_user'], user['id_user'], self.instabot.LastJson['user']['follower_count'],self.instabot.LastJson['user']['following_count'], json.dumps(self.instabot.LastJson), endOfDay)
+                return True
+            else:
+                pause = randint(10,15)
+                self.logger.info("scanUser: %s, attempt: %s failed. Going to pause for %s seconds" % (user['instagram_username'], scanAttempts, pause))
+                time.sleep(pause)
+        self.logger.info("scanUser: Could not scan user %s, too many failed attempts." % (user['instagram_username']))
+
 
     def getUsersToScan(self):
         eligibleUsers = self.getEligibleUsers()
+
+        if len(eligibleUsers) == 0:
+            return []
+
         noCrawlers = self.getNumberOfCrawlerBots()
         totalUsers = len(eligibleUsers)
         crawlerIndex = self.getCrawlerIndex()
@@ -82,7 +99,7 @@ class BotProfileCrawler:
         return users
 
     def getEligibleUsers(self):
-        usersWithActiveSubscription = "select email, instagram_username, users.id_user from users  join campaign on (users.id_user=campaign.id_user)  join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1  order by users.id_user desc"
+        usersWithActiveSubscription = "select users.id_user, instagram_username,  email, (select date from instagram_user_followers where id_user=users.id_user order by date desc limit 1) as last_updated  from users join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user) where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 having (date(last_updated)<DATE(CURDATE() - INTERVAL 1 DAY) or last_updated is null) order by -last_updated desc, id_user desc"
         users = api_db.select(usersWithActiveSubscription)
         self.logger.info("getTotalEligibleUsers: Found a total of eligible %s users that need to be split.", len(users))
         return users

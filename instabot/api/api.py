@@ -299,7 +299,7 @@ class API(object):
                 response = self.session.get(
                     config.API_URL + endpoint, verify=True)
         except Exception as e:
-            self.logger.warning(str(e))
+            self.logger.warning("ERROR: Processing the request: %s",str(e))
             return False
 
         if response.status_code == 200:

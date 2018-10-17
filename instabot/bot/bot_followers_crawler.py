@@ -147,6 +147,10 @@ class BotFollowersCrawler:
 
     def getUsersToScan(self):
         eligibleUsers = self.getEligibleUsers()
+
+        if len(eligibleUsers) == 0:
+            return []
+
         noCrawlers = self.getNumberOfCrawlerBots()
         totalUsers = len(eligibleUsers)
         crawlerIndex = self.getCrawlerIndex()
