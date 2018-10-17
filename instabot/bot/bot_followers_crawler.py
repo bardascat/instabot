@@ -79,11 +79,11 @@ class BotFollowersCrawler:
         client = MongoClient(host='localhost', port=27017)
         return client
 
-    def insertFollowers(self, followers):
-        self.logger.info("insertFollowers: inserting %s followers in db..." % len(followers))
+    def insertFollowers(self, followersObject):
+        self.logger.info("insertFollowers: inserting %s followers in db..." % len(followersObject['followers']))
         client = self.getDatabaseConnection()
         db = client.angie_app
-        db.user_followers.insert(followers)
+        db.user_followers.insert(followersObject)
         client.close()
         self.logger.info("insertFollowers: done... ")
 
