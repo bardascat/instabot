@@ -100,7 +100,7 @@ class BotFollowersCrawler:
         self.logger.info("removeFollowers: for user %s, between %s and %s" % (owner_instagram_username, gte, lte))
         client = self.getDatabaseConnection()
         db = client.angie_app
-        db.user_followers.remove({"owner_instagram_username": owner_instagram_username, "created_at": {"$gte": gte, "$lte": lte}})
+        db.user_followers.remove({"owner_instagram_username": owner_instagram_username, "crawled_at": {"$gte": gte, "$lte": lte}})
         client.close()
         self.logger.info("removeFollowers:done removing")
 
@@ -192,7 +192,7 @@ class BotFollowersCrawler:
             end = datetime.datetime.now()
             lte = end.replace(minute=59, hour=23, second=59, microsecond=999)
 
-            wasCrawledToday = db.user_followers.find({"owner_id":user['id_user'],"created_at": {"$gte": gte, "$lte": lte}})
+            wasCrawledToday = db.user_followers.find({"owner_id":user['id_user'],"crawled_at": {"$gte": gte, "$lte": lte}})
             if wasCrawledToday.count() == 0:
                 filteredUsers.append(user)
 
