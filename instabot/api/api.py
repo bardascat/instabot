@@ -267,7 +267,10 @@ class API(object):
             # self.logger.info("loadJson: Successfully loaded json !")
             return r
         except:
-            self.logger.info("loadJson: Could not load json %s", value)
+            exceptionDetail = traceback.format_exc()
+            # print(exceptionDetail)
+            self.logger.info("loadJson: Could not load json, exception: %s", exceptionDetail)
+            self.logger.info("loadJson: json value: %s", value)
             return {}
 
     def logout(self):
