@@ -14,7 +14,7 @@ class BotProcessFollowers:
 
         client = self.getDatabaseConnection()
         db = client.angie_app
-        items = db.user_followers.find({"processed": 0, "owner_instagram_username":"noemimeilman"}, {"followers": 0})
+        items = db.user_followers.find({"processed": 0}, {"followers": 0})
 
         self.logger.info("process: Found %s documents to process", items.count())
 
@@ -22,7 +22,7 @@ class BotProcessFollowers:
             unfollowers = []
             newFollowers = []
 
-            self.logger.info("process: Going to process left document: %s", leftDocument)
+            self.logger.info("************************ process: START to process left document: %s *****************************", leftDocument)
 
             rightDocument = db.user_followers.find_one(
                 {"owner_instagram_username": leftDocument['owner_instagram_username'],
@@ -41,30 +41,25 @@ class BotProcessFollowers:
                     len(leftDocumentFollowers['followers']), len(rightDocumentFollowers['followers'])))
 
             self.logger.info("process: Start Comparing lists for unfollowers")
-            for leftItem in leftDocumentFollowers['followers']:
-                followerFound = False
-                for rightItem in rightDocumentFollowers['followers']:
-                    if leftItem['username'] == rightItem['username']:
-                        followerFound = True
 
-                if followerFound == False:
-                    self.logger.info("Follower %s was not found in right list", leftItem['username'])
-                    unfollowers.append(leftItem)
-            self.logger.info("process: done comparing lists for unfollowers")
+            listA_set = set(item['username'] for item in leftDocumentFollowers['followers'])
+            listB_set = set(item['username'] for item in rightDocumentFollowers['followers'])
 
-            self.logger.info("process: Start Comparing lists for new followers")
-            for rightItem in rightDocumentFollowers['followers']:
-                followerFound = False
-                for leftItem in leftDocumentFollowers['followers']:
-                    if leftItem['username'] == rightItem['username']:
-                        followerFound = True
+            unfollowersSet = listA_set.difference(listB_set)
+            newFollowersSet = listB_set.difference(listA_set)
+
+            for username in unfollowersSet:
+                for item in leftDocumentFollowers['followers']:
+                    if username == item['username']:
+                        unfollowers.append(item)
                         break
 
-                if followerFound == False:
-                    self.logger.info("Follower %s was not found in left list -> new Follower", rightItem['username'])
-                    newFollowers.append(rightItem)
+            for username in newFollowersSet:
+                for item in rightDocumentFollowers['followers']:
+                    if username == item['username']:
+                        newFollowers.append(item)
+                        break
 
-            self.logger.info("process: Done comparing lists for new followers")
 
             self.logger.info("process: going to insert restults into database")
             db.processed_user_followers.insert({
@@ -77,7 +72,7 @@ class BotProcessFollowers:
 
             db.user_followers.update({"_id":leftDocument["_id"]},{"$set":{"processed":1}})
 
-            self.logger.info("process: Done processing this document. Found %s unfollowers, %s new followers Going to process next user..." % (len(unfollowers), len(newFollowers)))
+            self.logger.info("************* process: Done processing this document. Found %s unfollowers, %s new followers Going to process next user... ***********************" % (len(unfollowers), len(newFollowers)))
 
 
         client.close()
