@@ -67,7 +67,8 @@ class BotProcessFollowers:
                 "start_date":leftDocument['crawled_at'],
                 "end_date":rightDocument['crawled_at'],
                 "new_followers":newFollowers,
-                "unfollowers":unfollowers
+                "unfollowers":unfollowers,
+                "owner_instagram_username":leftDocumentFollowers['owner_instagram_username']
             })
 
             db.user_followers.update({"_id":leftDocument["_id"]},{"$set":{"processed":1}})
