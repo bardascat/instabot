@@ -68,7 +68,8 @@ class BotFollowersCrawler:
                 "owner_id": user['id_user'],
                 "id_crawler": self.campaign['id_user'],
                 "crawled_at": datetime.datetime.now(),
-                "followers": followers
+                "followers": followers,
+                "processed": 0
             })
             self.logger.info("scanUser: done saving")
 
