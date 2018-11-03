@@ -26,6 +26,7 @@ def stopProcesses():
 	logger.info("final cleanup, going to kill hanging procesess")
 	os.system(" ps aux  |  grep -i angie_idc  |  awk '{print $2}'  |  xargs  kill -9")
 	os.system("ps aux  |  grep -i angie_instapy |  awk '{print $2}'  |  xargs  kill -9")
+	os.system("ps aux  |  grep -i angie_scan_user |  awk '{print $2}'  |  xargs  kill -9")
 	os.system("ps aux  |  grep -i chrome |  awk '{print $2}'  |  xargs  kill -9")
 	logger.info("final cleanup done...")
 	
