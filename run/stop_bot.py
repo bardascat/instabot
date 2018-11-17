@@ -5,7 +5,7 @@ import os
 import signal
 from random import randint
 
-logging.basicConfig(format='%(asctime)s %(message)s',filename='/home/ubuntu/instabot-log/stop_bot.log',level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s %(message)s',filename='/home/instabot-log/stop_bot.log',level=logging.DEBUG)
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')

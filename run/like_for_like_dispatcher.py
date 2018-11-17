@@ -7,7 +7,7 @@ import subprocess
 from random import randint
 import signal
 
-logging.basicConfig(format='%(asctime)s %(message)s', filename='/home/ubuntu/instabot-log/like_for_like_dispatcher.log',
+logging.basicConfig(format='%(asctime)s %(message)s', filename='/home/instabot-log/like_for_like_dispatcher.log',
                     level=logging.DEBUG)
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)

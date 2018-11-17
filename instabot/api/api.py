@@ -77,7 +77,7 @@ class API(object):
 
         # this is not working atm
         # logs_folder = os.environ['INSTABOT_LOGS_PATH']
-        logs_folder = "/home/ubuntu/instabot-log"
+        logs_folder = "/home/instabot-log"
         campaign_folder = logs_folder + "/campaign/" + id_campaign
 
         log_path = campaign_folder + "/" + filename
@@ -164,7 +164,7 @@ class API(object):
         self.logger.info("loginFromStorage: Trying to login from storage...")
 
         try:
-            with open('/home/ubuntu/instabot-log/campaign/'+self.id_campaign+'/user-identity.json') as json_data:
+            with open('/home/instabot-log/campaign/'+self.id_campaign+'/user-identity.json') as json_data:
                 userIdentity = json.load(json_data)
                 #self.logger.info("canLoginFromStorage: userIdentity:%s",userIdentity)
 
@@ -250,7 +250,7 @@ class API(object):
                 userIdentity['social_hash_bucket_id'] = self.session.cookies.get("social_hash_bucket_id",domain="i.instagram.com")
                 userIdentity['urlgen'] = self.session.cookies.get("urlgen",domain="i.instagram.com")
 
-                with io.open('/home/ubuntu/instabot-log/campaign/'+self.id_campaign+'/user-identity.json', 'w', encoding='utf-8') as f:
+                with io.open('/home/instabot-log/campaign/'+self.id_campaign+'/user-identity.json', 'w', encoding='utf-8') as f:
                     f.write(json.dumps(userIdentity, ensure_ascii=False))
 
                 return True

@@ -4,8 +4,8 @@ import traceback
 from instabot.bot.bot_process_followers import BotProcessFollowers
 import psutil
 
-BASE_DIR = "/home/ubuntu/instabot-log/"
-#BASE_DIR="/home/ubuntu/instabot-log/"
+BASE_DIR = "/home/instabot-log/"
+#BASE_DIR="/home/instabot-log/"
 
 logging.basicConfig(format='%(asctime)s %(message)s',
                     filename=BASE_DIR + 'process_followers/' + time.strftime("%d.%m.%Y") + '.log',
