@@ -12,7 +12,7 @@ stdout = sys.stdout
 sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 sys.path.append(os.path.join(sys.path[0], '../'))
 fileName = "start_bot_" + time.strftime("%d.%m.%Y") + ".log"
-logging.basicConfig(format='%(asctime)s %(message)s', filename='/home/instabot-log/' + fileName, level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s %(message)s', filename='/home/ubuntu/instabot-log/' + fileName, level=logging.DEBUG)
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')

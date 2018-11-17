@@ -4,8 +4,8 @@ import traceback
 from instabot.bot.bot_process_followers import BotProcessFollowers
 import psutil
 
-#BASE_DIR = "/Users/cbardas/instabot-log/"
-BASE_DIR="/home/instabot-log/"
+BASE_DIR = "/home/ubuntu/instabot-log/"
+#BASE_DIR="/home/ubuntu/instabot-log/"
 
 logging.basicConfig(format='%(asctime)s %(message)s',
                     filename=BASE_DIR + 'process_followers/' + time.strftime("%d.%m.%Y") + '.log',
@@ -41,7 +41,6 @@ try:
                 processName)
     canStart = canProcessStart(processName)
 
-    #canStart = True
     if not canStart:
         raise Exception("Error: there is already a  process with name %s. Going to exit", processName)
     else:
