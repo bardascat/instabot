@@ -4,7 +4,7 @@ import json
 
 
 def getConnection():
-    db = MySQLdb.connect(host="localhost",  # your host, usually localhost
+    db = MySQLdb.connect(host="52.36.217.85",  # your host, usually localhost
                          user="angie_app",  # your username
                          passwd="angiePasswordDB",  # your password
                          db="angie_app")
