@@ -10,8 +10,8 @@ import time
 from random import randint
 from tqdm import tqdm
 import os
-import io 
-import traceback 
+import io
+import traceback
 from . import config
 from .api_photo import configurePhoto
 from .api_photo import uploadPhoto
@@ -68,6 +68,10 @@ class API(object):
             filename = time.strftime("%d.%m.%Y") + "_l4l.log"
         elif bot_type=="scan_user_feed":
             filename = time.strftime("%d.%m.%Y") + "_scan_feed.log"
+        elif bot_type=="scan_user_followers":
+            filename = time.strftime("%d.%m.%Y") + "_scan_user_followers.log"
+        elif bot_type=="scan_user_profile":
+            filename = time.strftime("%d.%m.%Y") + "_scan_user_profile.log"
         else:
             filename = time.strftime("%d.%m.%Y") + ".log"
 
@@ -104,7 +108,7 @@ class API(object):
     def canUserLogin(self, id_campaign):
         blockLimit=12
         self.logger.info("canUserLogin: Checking if user with campaign: %s can loggin...", id_campaign)
-        
+
         result = fetchOne("select count(*) as total_blocks from bot_log join campaign using(id_user) where date(bot_log.timestamp)=CURDATE() and id_campaign=%s and (details='spam' or details='sentry_block' or details='ip_block')", id_campaign)
         if result['total_blocks']>=blockLimit:
             self.logger.info("canUserLogin: Error: User cannot login because it was blocked more than %s times today. Actual block %s" % (blockLimit, result['total_blocks']))
@@ -112,16 +116,16 @@ class API(object):
         else:
             self.logger.info("canUserLogin: SUCCESS, User Can login ! Today it was blocked %s times. Max limit is %s blocks." % (result['total_blocks'], blockLimit))
             return True
-        
-        
+
+
     def login(self, username=None, password=None, force=False, proxy=None, storage=True, logoutFlag=True):
         self.logger.info("login: Trying to login user %s with force flag value: %s, storage value: %s, logoutFlag: %s" % (username, force, storage, logoutFlag))
-        
-      
-        
+
+
+
         if self.canUserLogin(self.id_campaign)==False and force==False:
             raise Exception("login: User cannot login anymore today since it reached tha maximum blocks per day !")
-            
+
         if force==True:
             self.logger.info("login. Going to login the user no matter what since force flag is true.")
         if (not self.isLoggedIn or force):
@@ -144,8 +148,8 @@ class API(object):
 
             response=self.session.get('https://api.ipify.org?format=json')
             self.logger.info("Proxy test respone %s",response.text)
-            
-           
+
+
             if storage==False:
                 self.logger.info("login: Storage login is disabled !")
                 return self.newLogin(username,password,proxy)
@@ -153,17 +157,17 @@ class API(object):
                 return self.newLogin(username,password,proxy)
             else:
                 return True
-            
-        
-    
+
+
+
     def loginFromStorage(self, username, password):
         self.logger.info("loginFromStorage: Trying to login from storage...")
-        
+
         try:
             with open('/home/instabot-log/campaign/'+self.id_campaign+'/user-identity.json') as json_data:
                 userIdentity = json.load(json_data)
                 #self.logger.info("canLoginFromStorage: userIdentity:%s",userIdentity)
-                 
+
                 self.session.cookies.set(name="csrftoken",value=userIdentity['csrftoken'],domain="i.instagram.com",path="/")
                 self.session.cookies.set(name="ds_user",value=userIdentity['ds_user'],domain="i.instagram.com",path="/")
                 self.session.cookies.set(name="ds_user_id",value=userIdentity['ds_user_id'],domain="i.instagram.com",path="/")
@@ -180,7 +184,7 @@ class API(object):
                 self.isLoggedIn = True
                 self.username = username
                 self.password = password
-                
+
                 self.get_timeline_medias(amount=1)
                 self.logger.info("loginFromStorage: ****************** SUCCESS - USER LOGGED IN FROM STORAGE ************************")
                 return True
@@ -189,22 +193,22 @@ class API(object):
                 self.logger.info("loginFromStorage: ************ Cannot login from storage. Error: %s:",exceptionDetail)
                 return False
         return False
-        
-        
-  
+
+
+
     def newLogin(self, username,password, proxy):
         self.logger.info("newLogin: trying a new login...")
-        
+
         m = hashlib.md5()
         m.update(username.encode('utf-8') + password.encode('utf-8'))
         self.proxy = proxy
         self.device_id = self.generateDeviceId(m.hexdigest())
         self.setUser(username, password)
         self.session.cookies.clear_session_cookies()
-        
+
         self.logger.info("cookies 1: %s", self.session.cookies.list_domains())
         if (self.SendRequest('si/fetch_headers/?challenge_type=signup&guid=' + self.generateUUID(False), None, True)):
-            
+
             data = {'phone_id': self.generateUUID(True),
             '_csrftoken': self.LastResponse.cookies['csrftoken'],
             'username': self.username,
@@ -212,26 +216,26 @@ class API(object):
             'device_id': self.device_id,
             'password': self.password,
             'login_attempt_count': '0'}
-            
+
             self.logger.info("cookies 2: %s", self.session.cookies.list_domains())
-            
+
             if self.SendRequest('accounts/login/', self.generateSignature(json.dumps(data)), True):
-                self.logger.info("cookies 3: %s", self.session.cookies.list_domains())    
+                self.logger.info("cookies 3: %s", self.session.cookies.list_domains())
                 userIdentity={}
-                self.isLoggedIn = True 
-                    
+                self.isLoggedIn = True
+
                 self.user_id = self.LastJson["logged_in_user"]["pk"]
                 self.rank_token = "%s_%s" % (self.user_id, self.uuid)
                 self.token = self.LastResponse.cookies["csrftoken"]
                 self.logger.info("newLogin: ****************** SUCCESS - USER PERFORMED A NEW LOGIN as %s ************************", self.username)
-                
-                
+
+
                 #set instagram username
                 self.logger.info("login: Going to set the real instagram username:%s", self.LastJson["logged_in_user"]['username'])
                 insert("update campaign set instagram_username=%s where id_campaign=%s",self.LastJson['logged_in_user']['username'], self.id_campaign)
-                
-                
-                
+
+
+
                 userIdentity['uuid']=self.uuid
                 userIdentity['device_id']=self.device_id
                 userIdentity['user'] = self.LastJson["logged_in_user"]
@@ -245,10 +249,10 @@ class API(object):
                 userIdentity['sessionid'] = self.session.cookies.get("sessionid",domain="i.instagram.com")
                 userIdentity['social_hash_bucket_id'] = self.session.cookies.get("social_hash_bucket_id",domain="i.instagram.com")
                 userIdentity['urlgen'] = self.session.cookies.get("urlgen",domain="i.instagram.com")
-                
+
                 with io.open('/home/instabot-log/campaign/'+self.id_campaign+'/user-identity.json', 'w', encoding='utf-8') as f:
                     f.write(json.dumps(userIdentity, ensure_ascii=False))
-                     
+
                 return True
             else:
                 self.logger.info("login: Incorrect credentials or instagram verification required !")
@@ -256,14 +260,17 @@ class API(object):
         else:
             self.logger.info("login: Could not login user %s !", username)
             return False
-                
+
     def loadJson(self, value):
         try:
             r = json.loads(value)
             # self.logger.info("loadJson: Successfully loaded json !")
             return r
         except:
-            self.logger.info("loadJson: Could not load json %s", value)
+            exceptionDetail = traceback.format_exc()
+            # print(exceptionDetail)
+            self.logger.info("loadJson: Could not load json, exception: %s", exceptionDetail)
+            self.logger.info("loadJson: json value: %s", value)
             return {}
 
     def logout(self):
@@ -295,7 +302,7 @@ class API(object):
                 response = self.session.get(
                     config.API_URL + endpoint, verify=True)
         except Exception as e:
-            self.logger.warning(str(e))
+            self.logger.warning("ERROR: Processing the request: %s",str(e))
             return False
 
         if response.status_code == 200:
@@ -322,7 +329,7 @@ class API(object):
             if response.status_code == 400:
                 errorFound=0
                 responseObject = self.loadJson(response.text)
-                
+
                 if 'spam' in responseObject:
                     errorFound=1
                     details = "spam"
@@ -340,9 +347,9 @@ class API(object):
                         sleep_minutes, self.like_delay, self.follow_delay))
 
                     time.sleep(sleep_minutes * 60)
-                
-                if 'message' in responseObject: 
-                    
+
+                if 'message' in responseObject:
+
                     if responseObject['message']=="login_required":
                         errorFound=1
                         details="login_required"
@@ -351,30 +358,30 @@ class API(object):
                         raise Exception("sendRequest: The user is not logged in")
                 if 'error_type' in responseObject:
                     currentOperation = self.currentOperation if hasattr(self, "currentOperation") else None
-                    
-                    
+
+
                     if responseObject['error_type'] == 'sentry_block':
                         errorFound=1
                         details="sentry_block"
                         self.logger.warning("sendRequest: ********** FATAL ERROR ************* sentry_block")
                         self.logApiError(responseInfo, currentOperation, config.API_URL, endpoint,response.status_code, details)
                         raise Exception("sendRequest: ********** FATAL ERROR ************* sentry_block")
-                        
+
                     if responseObject['error_type'] == 'ip_block':
                         errorFound=1
                         details="ip_block"
                         self.logger.warning("sendRequest: ********** FATAL ERROR ************* ip_block")
                         self.logApiError(responseInfo, currentOperation, config.API_URL, endpoint,response.status_code, details)
                         raise Exception("sendRequest: ********** FATAL ERROR ************* ip_block")
-                    
+
                     self.logApiError(responseInfo, currentOperation, config.API_URL, endpoint,response.status_code, details)
-                    
+
                     if responseObject['error_type'] == 'checkpoint_challenge_required':
                         errorFound=1
                         self.logger.warning("sendRequest: Instagram requries phone verification")
                         self.notifyUserToVerifyInstagramAccount()
                         raise Exception("sendRequest: Instagram requires phone verification")
-                        
+
 
                     if responseObject['error_type'] == 'invalid_user':
                         errorFound=1
@@ -388,7 +395,7 @@ class API(object):
                         self.notifyUserInvalidCredentials()
                         raise Exception("sendRequest: Invalid instagram password")
 
-                if errorFound==0 and self.bot_type!="scan_user_feed":
+                if errorFound==0 and self.bot_type!="scan_user_feed" and self.bot_type!="scan_user_profile" and self.bot_type!="scan_user_followers":
                     sleep_minutes = 1
                     self.logger.warning("Request return 400 error. Going to sleep %s minutes" % sleep_minutes)
                     # don t sleep on login fail

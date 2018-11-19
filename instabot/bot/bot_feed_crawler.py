@@ -121,7 +121,7 @@ class BotFeedCrawler:
         self.logger.info("getNumberOfCrawlerBots: Found %s crawlers", result['no_crawlers'])
         return result['no_crawlers']
 
-    # returns users that eligible for scanning. Basicallt users with an active subscription and campaign is active
+    # returns users that eligible for scanning. Basically users with an active subscription and campaign is active
     def getTotalEligibleUsers(self):
 
         query = "select count(*) as total_users from users join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user) where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1";
@@ -138,7 +138,7 @@ class BotFeedCrawler:
         index = 0
         for bot in bots:
             if bot['username'] == self.campaign['username']:
-                self.logger.info("getBotIndex: Bot %s has index: %s", bot['username'])
+                self.logger.info("getBotIndex: Bot %s has index: %s" %  ( bot['username'], index))
                 return index
             index = index + 1
 
