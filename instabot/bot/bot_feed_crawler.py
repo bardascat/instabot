@@ -81,7 +81,7 @@ class BotFeedCrawler:
             for media in medias:
                 taken_at = datetime.datetime.fromtimestamp(int(media['taken_at']))
                 api_db.insert(
-                    "insert into user_post (id_campaign,id_user,instagram_post_id,code, crawler, timestamp) values (%s, %s, %s, %s, %s, %s)",
+                    "insert into user_post (id_campaign,id_user,instagram_post_id,code, crawler, instagram_published_date, timestamp) values (%s, %s, %s, %s, %s, %s, now())",
                     user['id_campaign'], user['id_user'], media['pk'], str(media['code']), self.campaign['id_user'],
                     taken_at)
             self.logger.info("scanUser: All posts were inserted in database.")
