@@ -48,6 +48,9 @@ class BotFeedCrawler:
             return False
 
         instagramUserId = self.instabot.get_userid_from_username(user['instagram_username'])
+        if self.LastResponse.status_code is not 200:
+            exit("There was an error with this bot. Going to kill the process")
+
         self.logger.info(
             "scanUser:  %s has instagram id %s" % (user['instagram_username'], instagramUserId))
 
