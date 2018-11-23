@@ -1,9 +1,15 @@
 import MySQLdb
 import sys
 import json
+from pymongo import MongoClient
 
 
-def getConnection():
+def getMongoConnection():
+    client = MongoClient(host='localhost', port=27017)
+    return client
+
+
+def getMysqlConnection():
     db = MySQLdb.connect(host="52.36.217.85",  # your host, usually localhost
                          user="angie_app",  # your username
                          passwd="angiePasswordDB",  # your password
@@ -19,7 +25,9 @@ def getConnection():
 
 def getCampaign(campaignId):
     if campaignId != False:
-        row = fetchOne("select username,id_user,id_campaign,timestamp,id_account_type from campaign where id_campaign=%s", campaignId)
+        row = fetchOne(
+            "select username,id_user,id_campaign,timestamp,id_account_type from campaign where id_campaign=%s",
+            campaignId)
         return row
     else:
         return None
@@ -34,7 +42,7 @@ def getWebApplicationUser(id_user):
 
 
 def fetchOne(query, *args):
-    db = getConnection()
+    db = getMysqlConnection()
     cur = db.cursor(MySQLdb.cursors.DictCursor)
     cur.execute(query, args)
     db.close()
@@ -42,7 +50,7 @@ def fetchOne(query, *args):
 
 
 def select(query, *args):
-    db = getConnection()
+    db = getMysqlConnection()
     cur = db.cursor(MySQLdb.cursors.DictCursor)
     cur.execute(query, args)
     rows = cur.fetchall()
@@ -51,7 +59,7 @@ def select(query, *args):
 
 
 def insert(query, *args):
-    db = getConnection()
+    db = getMysqlConnection()
     cur = db.cursor()
     cur.execute(query, args)
     db.commit()
@@ -59,14 +67,15 @@ def insert(query, *args):
     db.close()
     return id
 
+
 def updateCampaignChekpoint(key, value, id_campaign):
-  query='INSERT INTO campaign_checkpoint (id_campaign, _key, value, timestamp) VALUES(%s, %s, %s, CURDATE()) ON DUPLICATE KEY UPDATE  value=%s'
-  
-  id = insert(query, id_campaign, key, value, value)
-  
-  return id
-  
-  
+    query = 'INSERT INTO campaign_checkpoint (id_campaign, _key, value, timestamp) VALUES(%s, %s, %s, CURDATE()) ON DUPLICATE KEY UPDATE  value=%s'
+
+    id = insert(query, id_campaign, key, value, value)
+
+    return id
+
+
 def insertBotAction(*args):
     query = "insert into bot_action (id_campaign, id_user, instagram_id_user, " \
             "full_name, username, user_image, post_id, post_image, " \
@@ -93,14 +102,13 @@ def insertUserFollower(*args):
 
 
 def getBotIp(bot, id_user, id_campaign, is_bot_account):
-
     query = "select ip,type from  campaign left join ip_bot on campaign.id_ip_bot=ip_bot.id_ip_bot where id_campaign=%s"
 
     result = fetchOne(query, id_campaign)
 
     if result is None or result['ip'] is None:
         bot.logger.warning("getBotIp: Could not find an ip for user %s", id_user)
-        raise Exception("getBotIp: Could not find an ip for user"+str(id_user))
+        raise Exception("getBotIp: Could not find an ip for user" + str(id_user))
 
     bot.logger.info("User %s, has ip: %s" % (id_user, result['ip']))
     return result

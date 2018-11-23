@@ -1,7 +1,7 @@
 # TODO: maybe the work can be implemented using a single process / multithreading ?
 import datetime
 
-from pymongo import MongoClient
+from instabot.api import api_db
 
 
 class BotProcessFollowers:
@@ -12,7 +12,7 @@ class BotProcessFollowers:
 
         self.logger.info("process: Started processing followers")
 
-        client = self.getDatabaseConnection()
+        client = api_db.getMongoConnection()()
         db = client.angie_app
         items = db.user_followers.find({"processed": 0}, {"followers": 0})
 
@@ -79,13 +79,9 @@ class BotProcessFollowers:
         client.close()
         self.logger.info("process: done... ")
 
-    def getDatabaseConnection(self):
-        client = MongoClient(host='localhost', port=27017)
-        return client
-
     def insertFollowers(self, followersObject):
         self.logger.info("insertFollowers: inserting %s followers in db..." % len(followersObject['followers']))
-        client = self.getDatabaseConnection()
+        client = api_db.getMongoConnection()
         db = client.angie_app
         db.user_followers.insert(followersObject)
         client.close()
@@ -101,7 +97,7 @@ class BotProcessFollowers:
         lte = end.replace(minute=59, hour=23, second=59, microsecond=999)
 
         self.logger.info("removeFollowers: for user %s, between %s and %s" % (owner_instagram_username, gte, lte))
-        client = self.getDatabaseConnection()
+        client = api_db.getMongoConnection()
         db = client.angie_app
         db.user_followers.remove(
             {"owner_instagram_username": owner_instagram_username, "crawled_at": {"$gte": gte, "$lte": lte}})
