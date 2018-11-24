@@ -56,6 +56,7 @@ try:
         id_campaign=str(campaign['id_campaign']),
         multiple_ip=True,
         bot_type="scan_user_feed"
+
     )
 
     processName = "angie_scan_user_feed_" + str(campaign['id_campaign'])
@@ -68,7 +69,7 @@ try:
         bot.logger.info("scan_user_feed: All good no other %s process is running.", processName)
 
     while True:
-        status = bot.login(username=campaign['username'], password=campaign['password'])
+        status = bot.login(username=campaign['username'], password=campaign['password'], force=True)
 
         if not status:
             bot.logger.info("scan_user_feed: Could not login, going to exit !")

@@ -70,7 +70,7 @@ try:
     else:
         bot.logger.info("scan_user_profile: All good no other %s process is running.", processName)
 
-    status = bot.login(username=campaign['username'], password=campaign['password'])
+    status = bot.login(username=campaign['username'], password=campaign['password'], force=True)
 
     if not status:
         bot.logger.info("scan_user_profile: Could not login, going to exit !")
