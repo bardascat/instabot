@@ -24,8 +24,7 @@ args = parser.parse_args()
 if args.angie_campaign is None:
     exit("dispatcher: Error: Campaign id it is not specified !")
 
-print("cacat pansat")
-exit()
+
 def canProcessStart(processName):
     timesStarted = 0
 
