@@ -79,7 +79,7 @@ try:
 
 
 except SystemExit:
-    bot.logger.info("like_for_like: SystemExit: The angie_scan_user_feed process was successfully stopped")
+    bot.logger.info("scan_user_Feed: SystemExit: The angie_scan_user_feed process was successfully stopped")
 except:
     exceptionDetail = traceback.format_exc()
     print(exceptionDetail)

@@ -49,6 +49,7 @@ class BotFeedCrawler:
 
         instagramUserId = self.instabot.get_userid_from_username(user['instagram_username'])
         if self.instabot.LastResponse.status_code is not 200:
+            self.logger.info("Previous http rest failed, going to kill the process.")
             exit("There was an error with this bot. Going to kill the process")
 
         self.logger.info(
