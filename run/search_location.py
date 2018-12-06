@@ -25,7 +25,7 @@ campaign = api_db.fetchOne("select username,password,timestamp,id_campaign from 
 bot = Bot(id_campaign=args.id_campaign, multiple_ip=True, hide_output=True)
 bot.logger.info("search_location:Going to search the location %s" % (args.location))
 
-status = bot.login(username=campaign['username'], password=campaign['password'])
+status = bot.login(username=campaign['username'], password=campaign['password'], storage=False)
 if status != True:
     print(bot.LastResponse.text)
     exit()
