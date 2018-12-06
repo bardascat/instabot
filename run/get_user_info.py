@@ -25,7 +25,7 @@ campaign = api_db.fetchOne("select username,password,timestamp,id_campaign from 
 bot = Bot(id_campaign=args.id_campaign, multiple_ip=True, hide_output=True)
 bot.logger.info("get_user_info: Going to get user info for username: %s" % (args.instagramUsername))
 
-status = bot.login(username=campaign['username'], password=campaign['password'])
+status = bot.login(username=campaign['username'], password=campaign['password'], storage=False)
 if status != True:
     print(bot.LastResponse.text)
     exit()
