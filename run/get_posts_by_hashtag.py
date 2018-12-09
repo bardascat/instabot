@@ -35,7 +35,8 @@ try:
     if not args.id_campaign:
         exit(0)
 
-    campaign = api_db.fetchOne("select username,password,timestamp,id_campaign from campaign where id_campaign=%s", args.id_bot)
+    campaign = api_db.fetchOne("select username,password,timestamp,id_campaign from campaign where id_campaign=%s",
+                               args.id_bot)
 
     bot = Bot(id_campaign=args.id_bot, multiple_ip=True, hide_output=True)
     bot.logger.info("get_posts_by_hashtag: Going to get posts for hashtag %s" % (args.hashtag))
@@ -48,11 +49,19 @@ try:
         result["error"] = bot.LastResponse.text
         print(json.dumps(result))
 
-    result["posts"] = bot.getHashtagFeed(hashtagString=args.hashtag, amount=args.amount,
-                                         id_campaign=args.id_campaign,
-                                         removeLikedPosts=args.removeLikedPosts,
-                                         removeFollowedUsers=args.removeFollowedUsers)
-    print(json.dumps(result))
+    posts = bot.getHashtagFeed(hashtagString=args.hashtag, amount=args.amount,
+                               id_campaign=args.id_campaign,
+                               removeLikedPosts=args.removeLikedPosts,
+                               removeFollowedUsers=args.removeFollowedUsers)
+
+    parsedPosts = []
+    for post in posts:
+        parsedPosts.append({'code': post['code'],
+                            'user': post['user']['username'],
+                            'link': 'https://www.instagram.com/p/' + post['code'] + '/',
+                            'pk': post['p']})
+
+    print(json.dumps(parsedPosts))
 
 except:
     result = {}
