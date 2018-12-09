@@ -779,8 +779,7 @@ class API(object):
 
         return filteredLinks
 
-
-    def getLocationFeed(self, locationId, amount):
+    def getLocationFeed(self, locationId, amount=50, id_campaign=None, removeLikedPosts=False,removeFollowedUsers=False):
         self.logger.info("Getting %s medias from location: %s" % (amount, locationId))
 
         feed = []
@@ -801,7 +800,9 @@ class API(object):
                 self.logger.info("Retrieved %s medias from location %s" % (len(feed), locationId))
                 return feed
 
-            for item in temp["items"]:
+            items = self.filterLinks(temp["items"], id_campaign=id_campaign, removeLikedPosts=removeLikedPosts,removeFollowedUsers=removeFollowedUsers)
+
+            for item in items:
                 feed.append(item)
 
             if "next_max_id" in temp:
@@ -814,14 +815,13 @@ class API(object):
             security_check += 1
 
             sleep_time = randint(1, 3)
-            self.logger.info(
-                "Iteration %s ,received %s items, total received %s" % (security_check, len(temp['items']), len(feed)))
+            self.logger.info("Iteration %s ,received %s items, total received %s, total expected: %s" % (security_check, len(temp["items"]), len(feed), amount))
 
             self.logger.info("Sleeping %s seconds" % sleep_time)
             time.sleep(sleep_time)
 
         self.logger.info("Retrieved %s medias from location %s" % (len(feed), locationId))
-        return feed
+        return feed[:amount]
 
     def getPopularFeed(self):
         popularFeed = self.SendRequest(
