@@ -59,7 +59,7 @@ try:
         parsedPosts.append({'code': post['code'],
                             'user': post['user']['username'],
                             'link': 'https://www.instagram.com/p/' + post['code'] + '/',
-                            'pk': post['p']})
+                            'pk': post['pk']})
 
     print(json.dumps(parsedPosts))
 
