@@ -35,7 +35,7 @@ from .api_profile import setNameAndPhone
 
 from .prepare import get_credentials
 from .prepare import delete_credentials
-from .api_db import insert, getBotIp, fetchOne
+from .api_db import insert, getBotIp, fetchOne, excludeAlreadyProcessedLinks
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.poolmanager import PoolManager
 import socket
@@ -206,7 +206,7 @@ class API(object):
         self.setUser(username, password)
         self.session.cookies.clear_session_cookies()
 
-        self.logger.info("cookies 1: %s", self.session.cookies.list_domains())
+        #self.logger.info("cookies 1: %s", self.session.cookies.list_domains())
         if (self.SendRequest('si/fetch_headers/?challenge_type=signup&guid=' + self.generateUUID(False), None, True)):
 
             data = {'phone_id': self.generateUUID(True),
@@ -217,10 +217,10 @@ class API(object):
             'password': self.password,
             'login_attempt_count': '0'}
 
-            self.logger.info("cookies 2: %s", self.session.cookies.list_domains())
+            #self.logger.info("cookies 2: %s", self.session.cookies.list_domains())
 
             if self.SendRequest('accounts/login/', self.generateSignature(json.dumps(data)), True):
-                self.logger.info("cookies 3: %s", self.session.cookies.list_domains())
+                #self.logger.info("cookies 3: %s", self.session.cookies.list_domains())
                 userIdentity={}
                 self.isLoggedIn = True
 
@@ -250,7 +250,7 @@ class API(object):
                 # userIdentity['social_hash_bucket_id'] = self.session.cookies.get("social_hash_bucket_id",domain="i.instagram.com")
                 # userIdentity['urlgen'] = self.session.cookies.get("urlgen",domain="i.instagram.com")
                 #
-                # with io.open('/home/instabot-log/campaign/'+self.id_campaign+'/user-identity.json', 'w', encoding='utf-8') as f:
+                # with io.open('/Users/cbardas/instapy-log//campaign/'+self.id_campaign+'/user-identity.json', 'w', encoding='utf-8') as f:
                 #     f.write(json.dumps(userIdentity, ensure_ascii=False))
 
                 return True
@@ -716,7 +716,7 @@ class API(object):
     def getSelfUserFeed(self, maxid='', minTimestamp=None):
         return self.getUserFeed(self.user_id, maxid, minTimestamp)
 
-    def getHashtagFeed(self, hashtagString, amount=50):
+    def getHashtagFeed(self, hashtagString, amount=50, id_campaign=None, removeLikedPosts=False, removeFollowedUsers = False):
         if hashtagString[:1] == "#":
             hashtagString = hashtagString[1:]
 
@@ -738,9 +738,10 @@ class API(object):
                 self.logger.info("Total Received %s items with hashtag %s" % (len(feed), hashtagString))
                 return feed
 
-            for item in temp["items"]:
-                if 'pk' in item.keys():
-                    feed.append(item)
+            items = self.filterLinks(temp["items"], id_campaign=id_campaign, removeLikedPosts=removeLikedPosts, removeFollowedUsers=removeFollowedUsers)
+
+            for item in items:
+                feed.append(item)
 
             if "next_max_id" not in temp:
                 self.logger.info("Total Received %s items with hashtag %s" % (len(feed), hashtagString))
@@ -748,15 +749,36 @@ class API(object):
 
             next_max_id = temp["next_max_id"]
 
-            self.logger.info(
-                "Iteration %s ,received %s items, total received %s" % (securityBreak, len(temp['items']), len(feed)))
+
+
+            self.logger.info("Iteration %s ,received %s items, total received %s, total expected: %s" % (securityBreak, len(temp["items"]),len(feed), amount))
             securityBreak = securityBreak + 1
             sleep_time = randint(1, 3)
             self.logger.info("Sleeping %s seconds" % sleep_time)
             time.sleep(sleep_time)
 
         self.logger.info("Total Received %s items with hashtag %s" % (len(feed), hashtagString))
-        return feed
+        return feed[:amount]
+
+    def filterLinks(self, links, id_campaign=False, removeLikedPosts=False, removeFollowedUsers=False):
+
+        self.logger.info("filterLinks: Going to filter %s links using options: id_campaign: %s, removeLikedPosts:%s, removeFollowedUsers:%s " % (len(links), id_campaign, removeLikedPosts, removeFollowedUsers))
+        filteredLinks = []
+
+        for item in links:
+            if 'pk' in item.keys():
+                filteredLinks.append(item)
+
+        if id_campaign is False:
+            return filteredLinks
+
+        if removeLikedPosts is False and removeFollowedUsers is False:
+            return filteredLinks
+
+        filteredLinks = excludeAlreadyProcessedLinks(filteredLinks, id_campaign, removeLikedPosts, removeFollowedUsers, self.logger)
+
+        return filteredLinks
+
 
     def getLocationFeed(self, locationId, amount):
         self.logger.info("Getting %s medias from location: %s" % (amount, locationId))

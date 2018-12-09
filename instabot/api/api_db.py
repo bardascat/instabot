@@ -9,6 +9,33 @@ def getMongoConnection():
     return client
 
 
+def excludeAlreadyProcessedLinks(links, id_campaign, removeLikedPosts, removeFollowedUsers, logger):
+    client = getMongoConnection()
+    db = client.angie_app
+
+    filteredLinks = []
+
+    for item in links:
+        if removeLikedPosts is True:
+            postLiked = db.bot_action.find_one({"post_link": {"$regex": ".*" + item["code"] + ".*"}, "id_campaign": int(id_campaign),"bot_operation": {"$regex": "^like_engagement_"}})
+            if postLiked is not None:
+                logger.info("excludeAlreadyProcessedLinks: Post %s was already liked, going to skip it" % (item["code"]))
+                continue
+
+        if removeFollowedUsers is True:
+            userFollowed = db.bot_action.find_one({"username": item["user"]["username"], "id_campaign": int(id_campaign),"bot_operation": {"$regex": "^follow_engagement_"}})
+            if userFollowed is not None:
+                logger.info("excludeAlreadyProcessedLinks: User %s was already liked, going to skip it" % (item["user"]["username"]))
+                continue
+
+        filteredLinks.append(item)
+
+    client.close()
+
+    logger.info("excludeAlreadyProcessedLinks: Total links received: %s, filtered links: %s" % (len(links), len(filteredLinks)))
+    return filteredLinks
+
+
 def getMysqlConnection():
     db = MySQLdb.connect(host="52.36.217.85",  # your host, usually localhost
                          user="angie_app",  # your username
