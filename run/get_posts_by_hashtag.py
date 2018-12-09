@@ -35,9 +35,9 @@ try:
     if not args.id_campaign:
         exit(0)
 
-    campaign = api_db.fetchOne("select username,password,timestamp,id_campaign from campaign where id_campaign=%s", args.id_campaign)
+    campaign = api_db.fetchOne("select username,password,timestamp,id_campaign from campaign where id_campaign=%s", args.id_bot)
 
-    bot = Bot(id_campaign=args.id_campaign, multiple_ip=True, hide_output=True)
+    bot = Bot(id_campaign=args.id_bot, multiple_ip=True, hide_output=True)
     bot.logger.info("get_posts_by_hashtag: Going to get posts for hashtag %s" % (args.hashtag))
 
     result = {}
