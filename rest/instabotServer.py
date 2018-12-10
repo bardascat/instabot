@@ -1,6 +1,8 @@
 """
 Main module of the server file
 """
+from random import randint
+from time import sleep
 import json
 # -*- coding: utf-8 -*-
 import traceback
@@ -10,7 +12,8 @@ from flask import Flask
 from instabot import Bot
 from instabot.api import api_db
 
-print("started")
+seconds=randint(1,15)
+
 id_campaign="3"
 bot = Bot(
     id_campaign=id_campaign,
@@ -21,15 +24,16 @@ bot = Bot(
 )
 
 campaign = api_db.fetchOne("select username,password,timestamp,id_campaign from campaign where id_campaign=%s",id_campaign)
-
+bot.logger.info("Sleeping %s seconds before starting.",  seconds)
 status = bot.login(username=campaign['username'], password=campaign['password'], storage=False)
 
-# Create the application instance
+#Create the application instance
 app = Flask(__name__)
 
 # create a URL route in our application for "/"
 @app.route('/')
 def home():
+    print("this is home")
     return "ANGIE PYTHON REST API"
 
 
@@ -40,13 +44,13 @@ def hashtag():
 
     global bot
     try:
-        posts = bot.getHashtagFeed(hashtagString="pantofi", amount=10,
+        posts = bot.getHashtagFeed(hashtagString2="pantofi", amount=10,
                                     id_campaign=1,
                                     removeLikedPosts=False,
                                     removeFollowedUsers=False)
     except Exception as exc:
         exceptionDetail = traceback.format_exc()
-        print(exceptionDetail)
+        bot.logger.info("exception: %s", exceptionDetail)
 
     return json.dumps(posts)
 
@@ -56,7 +60,7 @@ def location():
     global bot
 
 
-    posts = bot.getHashtagFeed(hashtagString="ronaldo", amount=10,
+    posts = bot.getHashtagFeed(hashtagStringx="ronaldo", amount=10,
                                 id_campaign=1,
                                 removeLikedPosts=False,
                                 removeFollowedUsers=False)
