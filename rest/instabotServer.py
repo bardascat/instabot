@@ -21,7 +21,8 @@ bot = Bot(
     multiple_ip=True
 )
 campaign = api_db.fetchOne("select username,password,timestamp,id_campaign from campaign where id_campaign=%s", id_bot)
-# todo: i think this sleeping is useless since the worker is going to clone the same process
+
+# wait a few seconds between gunicorn workers
 seconds = randint(1, 15)
 bot.logger.info("Sleeping %s seconds before starting.", seconds)
 sleep(seconds)
@@ -52,10 +53,18 @@ def hashtag():
         removeFollowedUsers = removeFollowedUsers == 'true'
         amount = int(amount)
 
-        result = bot.getHashtagFeed(hashtagString=hashtag, amount=amount,
-                                    id_campaign=id_campaign,
-                                    removeLikedPosts=removeLikedPosts,
-                                    removeFollowedUsers=removeFollowedUsers)
+        feed = bot.getHashtagFeed(hashtagString=hashtag, amount=amount,
+                                  id_campaign=id_campaign,
+                                  removeLikedPosts=removeLikedPosts,
+                                  removeFollowedUsers=removeFollowedUsers)
+
+        result = []
+        for post in feed:
+            result.append({'code': post['code'],
+                           'user': post['user']['username'],
+                           'link': 'https://www.instagram.com/p/' + post['code'] + '/',
+                           'pk': post['pk']})
+
     except Exception as exc:
         exceptionDetail = traceback.format_exc()
         bot.logger.info("hashtag: exception while getting hahtags: %s", exceptionDetail)
@@ -77,10 +86,18 @@ def location():
         removeFollowedUsers = removeFollowedUsers == 'true'
         amount = int(amount)
 
-        result = bot.getLocationFeed(locationId=location, amount=amount,
-                                     id_campaign=id_campaign,
-                                     removeLikedPosts=removeLikedPosts,
-                                     removeFollowedUsers=removeFollowedUsers)
+        feed = bot.getLocationFeed(locationId=location, amount=amount,
+                                   id_campaign=id_campaign,
+                                   removeLikedPosts=removeLikedPosts,
+                                   removeFollowedUsers=removeFollowedUsers)
+        result = []
+        for post in feed:
+            result.append({'code': post['code'],
+                           'user': post['user']['username'],
+                           'link': 'https://www.instagram.com/p/' + post['code'] + '/',
+                           'pk': post['pk']})
+
+
     except Exception as exc:
         exceptionDetail = traceback.format_exc()
         bot.logger.info("location:exception while getting locations: %s", exceptionDetail)
