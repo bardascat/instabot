@@ -8,27 +8,29 @@ import json
 import traceback
 
 from flask import Flask
-
+from flask import request
 from instabot import Bot
 from instabot.api import api_db
 
-seconds=randint(1,15)
-
-id_campaign="3"
+id_bot = "401"
 bot = Bot(
-    id_campaign=id_campaign,
+    id_campaign=id_bot,
     max_likes_per_day=3100,  # default 1000
     like_delay=40,
     like_delay_if_bot_blocked=160,
     multiple_ip=True
 )
+campaign = api_db.fetchOne("select username,password,timestamp,id_campaign from campaign where id_campaign=%s", id_bot)
+# todo: i think this sleeping is useless since the worker is going to clone the same process
+seconds = randint(1, 15)
+bot.logger.info("Sleeping %s seconds before starting.", seconds)
+sleep(seconds)
 
-campaign = api_db.fetchOne("select username,password,timestamp,id_campaign from campaign where id_campaign=%s",id_campaign)
-bot.logger.info("Sleeping %s seconds before starting.",  seconds)
 status = bot.login(username=campaign['username'], password=campaign['password'], storage=False)
 
-#Create the application instance
+# Create the application instance
 app = Flask(__name__)
+
 
 # create a URL route in our application for "/"
 @app.route('/')
@@ -39,35 +41,53 @@ def home():
 
 @app.route('/api/posts/hashtag')
 def hashtag():
-
-    print("getting data")
-
     global bot
     try:
-        posts = bot.getHashtagFeed(hashtagString2="pantofi", amount=10,
-                                    id_campaign=1,
-                                    removeLikedPosts=False,
-                                    removeFollowedUsers=False)
+        hashtag = request.args.get('hashtag')
+        amount = request.args.get('amount')
+        id_campaign = request.args.get('id_campaign')
+        removeLikedPosts = request.args.get('removeLikedPosts')
+        removeFollowedUsers = request.args.get('removeFollowedUsers')
+        removeLikedPosts = removeLikedPosts == 'true'
+        removeFollowedUsers = removeFollowedUsers == 'true'
+        amount = int(amount)
+
+        result = bot.getHashtagFeed(hashtagString=hashtag, amount=amount,
+                                    id_campaign=id_campaign,
+                                    removeLikedPosts=removeLikedPosts,
+                                    removeFollowedUsers=removeFollowedUsers)
     except Exception as exc:
         exceptionDetail = traceback.format_exc()
-        bot.logger.info("exception: %s", exceptionDetail)
+        bot.logger.info("hashtag: exception while getting hahtags: %s", exceptionDetail)
+        result['error'] = exceptionDetail
 
-    return json.dumps(posts)
+    return json.dumps(result)
 
 
 @app.route('/api/posts/location')
 def location():
     global bot
+    try:
+        location = request.args.get('location')
+        amount = request.args.get('amount')
+        id_campaign = request.args.get('id_campaign')
+        removeLikedPosts = request.args.get('removeLikedPosts')
+        removeFollowedUsers = request.args.get('removeFollowedUsers')
+        removeLikedPosts = removeLikedPosts == 'true'
+        removeFollowedUsers = removeFollowedUsers == 'true'
+        amount = int(amount)
 
+        result = bot.getLocationFeed(locationId=location, amount=amount,
+                                     id_campaign=id_campaign,
+                                     removeLikedPosts=removeLikedPosts,
+                                     removeFollowedUsers=removeFollowedUsers)
+    except Exception as exc:
+        exceptionDetail = traceback.format_exc()
+        bot.logger.info("location:exception while getting locations: %s", exceptionDetail)
+        result['error'] = exceptionDetail
 
-    posts = bot.getHashtagFeed(hashtagStringx="ronaldo", amount=10,
-                                id_campaign=1,
-                                removeLikedPosts=False,
-                                removeFollowedUsers=False)
-
-    return json.dumps(posts)
-
+    return json.dumps(result)
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=50001,threaded=False)
+    app.run(debug=True, port=50001, threaded=False)
