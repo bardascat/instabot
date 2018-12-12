@@ -725,7 +725,7 @@ class API(object):
         next_max_id = None
         securityBreak = 0
 
-        while len(feed) < amount and securityBreak < 50:
+        while len(feed) < amount and securityBreak < 6:
             if not next_max_id:
                 self.SendRequest('feed/tag/' + hashtagString)
             else:
@@ -786,7 +786,7 @@ class API(object):
         next_max_id = None
         security_check = 0
 
-        while len(feed) < amount and security_check < 100:
+        while len(feed) < amount and security_check < 6:
 
             if not next_max_id:
                 self.SendRequest('feed/location/' + str(locationId))
