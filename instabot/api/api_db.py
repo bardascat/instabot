@@ -23,6 +23,8 @@ def excludeAlreadyProcessedLinks(links, id_campaign, removeLikedPosts, removeFol
                 continue
 
         if removeFollowedUsers is True:
+            logger.info("excludeAlreadyProcessedLinks: checking username: %s, id_campaign: %s, " % (item['user']['username'], id_campaign))
+
             userFollowed = db.bot_action.find_one({"username": item["user"]["username"], "id_campaign": int(id_campaign),"bot_operation": {"$regex": "^follow_engagement_"}})
             if userFollowed is not None:
                 logger.info("excludeAlreadyProcessedLinks: User %s was already liked, going to skip it" % (item["user"]["username"]))
