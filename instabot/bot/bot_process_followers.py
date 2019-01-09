@@ -12,7 +12,7 @@ class BotProcessFollowers:
 
         self.logger.info("process: Started processing followers")
 
-        client = api_db.getMongoConnection()()
+        client = api_db.getMongoConnection()
         db = client.angie_app
         items = db.user_followers.find({"processed": 0}, {"followers": 0})
 
