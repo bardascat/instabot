@@ -19,7 +19,7 @@ def excludeAlreadyProcessedLinks(links, id_campaign, removeLikedPosts, removeFol
         if removeLikedPosts is True:
             postLiked = db.bot_action.find_one({"post_link": "https://www.instagram.com/p/"+item["code"]+"/", "id_campaign": int(id_campaign),"bot_operation": {"$regex": "^like_engagement_"}})
             if postLiked is not None:
-                logger.info("excludeAlreadyProcessedLinks: Post %s was already liked, going to skip it" % (item["code"]))
+                #logger.info("excludeAlreadyProcessedLinks: Post %s was already liked, going to skip it" % (item["code"]))
                 continue
 
         if removeFollowedUsers is True:
@@ -27,7 +27,7 @@ def excludeAlreadyProcessedLinks(links, id_campaign, removeLikedPosts, removeFol
 
             userFollowed = db.bot_action.find_one({"username": item["user"]["username"], "id_campaign": int(id_campaign),"bot_operation": {"$regex": "^follow_engagement_"}})
             if userFollowed is not None:
-                logger.info("excludeAlreadyProcessedLinks: User %s was already liked, going to skip it" % (item["user"]["username"]))
+                #logger.info("excludeAlreadyProcessedLinks: User %s was already followed, going to skip it" % (item["user"]["username"]))
                 continue
 
         filteredLinks.append(item)
