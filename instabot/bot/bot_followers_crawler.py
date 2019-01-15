@@ -31,7 +31,7 @@ class BotFollowersCrawler:
 
             self.logger.info("----------DONE SCANNING USER %s ---------------", user['instagram_username'])
 
-            pause = randint(13, 16)
+            pause = randint(3, 5)
             self.logger.info("scanUsers: Pause for %s minutes until processing next user...", pause)
             time.sleep(pause * 60)
 
@@ -45,7 +45,8 @@ class BotFollowersCrawler:
             return False
 
         instagramUserId = self.instabot.get_userid_from_username(user['instagram_username'])
-        self.logger.info("scanUser:  %s has instagram id %s" % (user['instagram_username'], instagramUserId))
+        userInfo = self.instabot.get_user_info(instagramUserId)
+        self.logger.info("scanUser:  %s has instagram id %s, followers count: %s: " % (user['instagram_username'], instagramUserId, userInfo['follower_count']))
 
         if instagramUserId is None:
             self.logger.warning("scanUser:  ERROR: Userid is none, probably the instagram username is invalid. Going to skip this user: %s...",user['email'])
@@ -131,14 +132,14 @@ class BotFollowersCrawler:
                 followers.append(item)
             securityBreak = securityBreak + 1
 
-            self.logger.info("Iteration %s ,received %s items, total received %s followers" % (securityBreak, len(temp['users']), len(followers)))
+            self.logger.info("Iteration %s ,received %s items, total received %s followers, max_id: %s" % (securityBreak, len(temp['users']), len(followers), next_max_id))
 
-            if "next_max_id" not in temp:
+            if "next_max_id" not in temp or temp['next_max_id'] is None:
                 self.logger.info("crawlFollowers: End of the line: Total received %s followers for user %s. going to return." % (len(followers), usernameId))
                 return followers
             next_max_id = temp["next_max_id"]
 
-            sleep_time = randint(40,60)
+            sleep_time = randint(3,5)
             self.logger.info("Sleeping %s seconds" % sleep_time)
             time.sleep(sleep_time)
 
