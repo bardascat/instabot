@@ -720,12 +720,14 @@ class API(object):
         if hashtagString[:1] == "#":
             hashtagString = hashtagString[1:]
 
-        self.logger.info("Trying to get %s medias with hashtag %s" % (amount, hashtagString))
+        tries = 6
         feed = []
         next_max_id = None
         securityBreak = 0
 
-        while len(feed) < amount and securityBreak < 6:
+        self.logger.info("Trying to get %s medias with hashtag %s during %s tries" % (amount, hashtagString, tries))
+
+        while len(feed) < amount and securityBreak < tries:
             if not next_max_id:
                 self.SendRequest('feed/tag/' + hashtagString)
             else:
@@ -751,7 +753,7 @@ class API(object):
 
 
 
-            self.logger.info("Iteration %s ,received %s items, total received %s, total expected: %s" % (securityBreak, len(temp["items"]),len(feed), amount))
+            self.logger.info("%s:, Iteration %s ,received %s items, total received %s, total expected: %s," % (hashtagString,securityBreak, len(temp["items"]),len(feed), amount))
             securityBreak = securityBreak + 1
             sleep_time = randint(1, 3)
             self.logger.info("Sleeping %s seconds" % sleep_time)
