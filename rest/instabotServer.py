@@ -77,7 +77,7 @@ def hashtag():
 def location():
     global bot
     try:
-        location = request.args.get('location')
+        locationId = request.args.get('id_location')
         amount = request.args.get('amount')
         id_campaign = request.args.get('id_campaign')
         removeLikedPosts = request.args.get('removeLikedPosts')
@@ -86,7 +86,7 @@ def location():
         removeFollowedUsers = removeFollowedUsers == 'true'
         amount = int(amount)
 
-        feed = bot.getLocationFeed(locationId=location, amount=amount,
+        feed = bot.getLocationFeed(locationId=locationId, amount=amount,
                                    id_campaign=id_campaign,
                                    removeLikedPosts=removeLikedPosts,
                                    removeFollowedUsers=removeFollowedUsers)
