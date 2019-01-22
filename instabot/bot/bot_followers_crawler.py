@@ -31,6 +31,10 @@ class BotFollowersCrawler:
 
             self.logger.info("----------DONE SCANNING USER %s ---------------", user['instagram_username'])
 
+            self.logger.info("----------GOING TO SET FOLLOW BACK STATUS FOR USER %s FOLLOWINGS %s ---------------", user['instagram_username'])
+            #todo: set the follow back status for bot_action
+            self.logger.info("----------DONE PROCESSING USER  %s ---------------",user['instagram_username'])
+
             pause = randint(3, 5)
             self.logger.info("scanUsers: Pause for %s minutes until processing next user...", pause)
             time.sleep(pause * 60)
@@ -59,7 +63,6 @@ class BotFollowersCrawler:
 
         if followers is False:
             self.logger.info("scanUser: ERROR:  Could not retrieve the entire list of followers, going to skip this user.")
-            #self.removeFollowersFromToday(user['instagram_username'])
             return False
         else:
             self.logger.info("scanUser: COMPLETED SCANNING FOR USER %s. Found %s followers." % (user['instagram_username'], len(followers)))
@@ -74,7 +77,7 @@ class BotFollowersCrawler:
             })
             self.logger.info("scanUser: done saving")
 
-            return True
+            return followers
 
 
     def getDatabaseConnection(self):
