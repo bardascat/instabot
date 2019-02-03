@@ -42,7 +42,7 @@ def home():
 @app.route('/api/status')
 def status():
     status = {"status": "up"}
-    return status
+    return json.dumps(status)
 
 @app.route('/api/posts/hashtag')
 def hashtag():
