@@ -720,12 +720,13 @@ class API(object):
         if hashtagString[:1] == "#":
             hashtagString = hashtagString[1:]
 
-        tries = 6
+        tries = 3
         feed = []
         next_max_id = None
         securityBreak = 0
 
-        self.logger.info("Trying to get %s medias with hashtag %s during %s tries" % (amount, hashtagString, tries))
+        self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/it:%s/removeLikedPosts:%s/removeFollowedUsers:%s. Started searching for posts by hashtag during 3 iterations." % (id_campaign, hashtagString, amount, removeLikedPosts, removeFollowedUsers))
+
 
         while len(feed) < amount and securityBreak < tries:
             if not next_max_id:
@@ -737,7 +738,7 @@ class API(object):
 
             # the result is damaged
             if "items" not in temp:
-                self.logger.info("Total Received %s items with hashtag %s" % (len(feed), hashtagString))
+                self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/it:%s: No more posts with this hashtag found in http response, going to return %s posts " % (id_campaign, hashtagString, amount, securityBreak, len(feed)))
                 return feed
 
             items = self.filterLinks(temp["items"], id_campaign=id_campaign, removeLikedPosts=removeLikedPosts, removeFollowedUsers=removeFollowedUsers)
@@ -746,20 +747,18 @@ class API(object):
                 feed.append(item)
 
             if "next_max_id" not in temp:
-                self.logger.info("Total Received %s items with hashtag %s" % (len(feed), hashtagString))
+                self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/it:%s: Next max id is none, this means end of results/no more posts. Going to return %s posts. " % (id_campaign, hashtagString, amount, securityBreak, len(feed)))
                 return feed
 
             next_max_id = temp["next_max_id"]
 
-
-
-            self.logger.info("%s:, Iteration %s ,received %s items, total received %s, total expected: %s," % (hashtagString,securityBreak, len(temp["items"]),len(feed), amount))
+            self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/it:%s: This iteration received: %s posts, total received %s, total expected: %s " % (id_campaign, hashtagString, amount, securityBreak, len(temp["items"]), len(feed), amount))
             securityBreak = securityBreak + 1
-            sleep_time = randint(1, 3)
-            self.logger.info("Sleeping %s seconds" % sleep_time)
+            sleep_time = randint(1, 1)
+            #self.logger.info("Sleeping %s seconds" % sleep_time)
             time.sleep(sleep_time)
 
-        self.logger.info("Total Received %s items with hashtag %s" % (len(feed), hashtagString))
+            self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/it:%s: END iterations, total received %s, total expected: %s " % (id_campaign, hashtagString, amount, securityBreak, len(feed), amount))
         return feed[:amount]
 
     def filterLinks(self, links, id_campaign=False, removeLikedPosts=False, removeFollowedUsers=False):
@@ -782,15 +781,17 @@ class API(object):
         return filteredLinks
 
     def getLocationFeed(self, locationId, amount=50, id_campaign=None, removeLikedPosts=False,removeFollowedUsers=False):
-        self.logger.info("Getting %s medias from location: %s" % (amount, locationId))
+        self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/removeLikedPosts:%s/removeFollowedUsers:%s. Started searching for posts by location during 3 iterations." % (id_campaign, locationId, amount, removeLikedPosts, removeFollowedUsers))
+
 
         feed = []
         next_max_id = None
         security_check = 0
 
-        while len(feed) < amount and security_check < 6:
+        while len(feed) < amount and security_check < 3:
 
             if not next_max_id:
+
                 self.SendRequest('feed/location/' + str(locationId))
             else:
                 self.SendRequest('feed/location/' + str(locationId) + '/?max_id=' + str(next_max_id))
@@ -799,7 +800,7 @@ class API(object):
 
             # the result is damaged
             if "items" not in temp:  # if no items
-                self.logger.info("Retrieved %s medias from location %s" % (len(feed), locationId))
+                self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/it:%s: No more posts with this location found in http response, going to return %s posts " % (id_campaign, locationId, amount, security_check, len(feed)))
                 return feed
 
             items = self.filterLinks(temp["items"], id_campaign=id_campaign, removeLikedPosts=removeLikedPosts,removeFollowedUsers=removeFollowedUsers)
@@ -810,19 +811,17 @@ class API(object):
             if "next_max_id" in temp:
                 next_max_id = temp["next_max_id"]
             else:
-                self.logger.info('Next max id is empty, going to return !')
-                self.logger.info("Retrieved %s medias from location %s" % (len(feed), locationId))
+                self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/it:%s: Next max id is none, this means end of results/no more posts. Going to return %s posts. " % (id_campaign, locationId, amount, security_check, len(feed)))
                 return feed
 
             security_check += 1
 
-            sleep_time = randint(1, 3)
-            self.logger.info("Iteration %s ,received %s items, total received %s, total expected: %s" % (security_check, len(temp["items"]), len(feed), amount))
-
-            self.logger.info("Sleeping %s seconds" % sleep_time)
+            sleep_time = randint(1, 1)
+            self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/it:%s: This iteration received: %s posts, total received %s, total expected: %s " % (id_campaign, locationId, amount, security_check, len(temp["items"]), len(feed), amount))
+            #self.logger.info("Sleeping %s seconds" % sleep_time)
             time.sleep(sleep_time)
 
-        self.logger.info("Retrieved %s medias from location %s" % (len(feed), locationId))
+        self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/it:%s: END iterations, total received %s, total expected: %s " % (id_campaign, locationId, amount, security_check, len(feed), amount))
         return feed[:amount]
 
     def getPopularFeed(self):
