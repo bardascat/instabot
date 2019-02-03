@@ -39,6 +39,10 @@ def home():
     print("this is home")
     return "ANGIE PYTHON REST API"
 
+@app.route('/api/status')
+def status():
+    status = {"status": "up"}
+    return status
 
 @app.route('/api/posts/hashtag')
 def hashtag():
