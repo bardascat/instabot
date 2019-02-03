@@ -740,7 +740,7 @@ class API(object):
             if "items" not in temp:
                 self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/it:%s: No more posts with this hashtag found in http response, going to return %s posts " % (id_campaign, hashtagString, amount, securityBreak, len(feed)))
                 return feed
-
+            #todo: set the context message for above functions
             items = self.filterLinks(temp["items"], id_campaign=id_campaign, removeLikedPosts=removeLikedPosts, removeFollowedUsers=removeFollowedUsers)
 
             for item in items:
