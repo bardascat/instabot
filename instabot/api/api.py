@@ -756,7 +756,8 @@ class API(object):
             securityBreak = securityBreak + 1
             sleep_time = randint(1, 1)
             #self.logger.info("Sleeping %s seconds" % sleep_time)
-            time.sleep(sleep_time)
+            if securityBreak<tries:
+                time.sleep(sleep_time)
 
             self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/it:%s: END iterations, total received %s, total expected: %s " % (id_campaign, hashtagString, amount, securityBreak, len(feed), amount))
         return feed[:amount]
@@ -783,12 +784,12 @@ class API(object):
     def getLocationFeed(self, locationId, amount=50, id_campaign=None, removeLikedPosts=False,removeFollowedUsers=False):
         self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/removeLikedPosts:%s/removeFollowedUsers:%s. Started searching for posts by location during 3 iterations." % (id_campaign, locationId, amount, removeLikedPosts, removeFollowedUsers))
 
-
+        tries = 3
         feed = []
         next_max_id = None
         security_check = 0
 
-        while len(feed) < amount and security_check < 3:
+        while len(feed) < amount and security_check < tries:
 
             if not next_max_id:
 
@@ -819,7 +820,8 @@ class API(object):
             sleep_time = randint(1, 1)
             self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/it:%s: This iteration received: %s posts, total received %s, total expected: %s " % (id_campaign, locationId, amount, security_check, len(temp["items"]), len(feed), amount))
             #self.logger.info("Sleeping %s seconds" % sleep_time)
-            time.sleep(sleep_time)
+            if security_check<tries:
+                time.sleep(sleep_time)
 
         self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/it:%s: END iterations, total received %s, total expected: %s " % (id_campaign, locationId, amount, security_check, len(feed), amount))
         return feed[:amount]
