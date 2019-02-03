@@ -37,7 +37,7 @@ app = Flask(__name__)
 @app.route('/')
 def home():
     print("this is home")
-    return "ANGIE PYTHON REST API"
+    return "INSTABOT PYTHON REST API"
 
 @app.route('/api/status')
 def status():
