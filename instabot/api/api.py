@@ -70,6 +70,8 @@ class API(object):
             filename = time.strftime("%d.%m.%Y") + "_scan_feed.log"
         elif bot_type=="scan_user_followers":
             filename = time.strftime("%d.%m.%Y") + "_scan_user_followers.log"
+        elif bot_type=="scan_user_actions":
+            filename = time.strftime("%d.%m.%Y") + "scan_user_actions.log"
         elif bot_type=="scan_user_profile":
             filename = time.strftime("%d.%m.%Y") + "_scan_user_profile.log"
         else:
@@ -720,7 +722,7 @@ class API(object):
         if hashtagString[:1] == "#":
             hashtagString = hashtagString[1:]
 
-        tries = 3
+        tries = 4
         feed = []
         next_max_id = None
         securityBreak = 0
@@ -754,7 +756,7 @@ class API(object):
 
             self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/it:%s: This iteration received: %s posts, total received %s, total expected: %s " % (id_campaign, hashtagString, amount, securityBreak, len(temp["items"]), len(feed), amount))
             securityBreak = securityBreak + 1
-            sleep_time = randint(1, 1)
+            sleep_time = randint(1, 2)
             #self.logger.info("Sleeping %s seconds" % sleep_time)
             if len(feed) < amount and securityBreak < tries:
                 time.sleep(sleep_time)
@@ -764,7 +766,6 @@ class API(object):
 
     def filterLinks(self, links, id_campaign=False, removeLikedPosts=False, removeFollowedUsers=False):
 
-        self.logger.info("filterLinks: Going to filter %s links using options: id_campaign: %s, removeLikedPosts:%s, removeFollowedUsers:%s " % (len(links), id_campaign, removeLikedPosts, removeFollowedUsers))
         filteredLinks = []
 
         for item in links:
@@ -784,7 +785,7 @@ class API(object):
     def getLocationFeed(self, locationId, amount=50, id_campaign=None, removeLikedPosts=False,removeFollowedUsers=False):
         self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/removeLikedPosts:%s/removeFollowedUsers:%s. Started searching for posts by location during 3 iterations." % (id_campaign, locationId, amount, removeLikedPosts, removeFollowedUsers))
 
-        tries = 3
+        tries = 4
         feed = []
         next_max_id = None
         security_check = 0
@@ -817,7 +818,7 @@ class API(object):
 
             security_check += 1
 
-            sleep_time = randint(1, 1)
+            sleep_time = randint(1, 2)
             self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/it:%s: This iteration received: %s posts, total received %s, total expected: %s " % (id_campaign, locationId, amount, security_check, len(temp["items"]), len(feed), amount))
             #self.logger.info("Sleeping %s seconds" % sleep_time)
             if len(feed)<amount and security_check < tries:
