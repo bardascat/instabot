@@ -59,6 +59,7 @@ class BotActionsCrawler:
         self.logger.info("scanUser: Received %s hashtags, %s locations" % (len(hashtags), len(locations)))
         #self.logger.info("scanUser: Tags: %s" % (tags))
 
+        #todo: number of iterations should be based on number of tags
         if len(tags) == 0:
             self.logger.info("Nothing to do with 0 tags, going to return")
             return False
@@ -125,10 +126,13 @@ class BotActionsCrawler:
         client = self.getDatabaseConnection()
         db = client.angie_app
 
-        object={"targetType": targetType, "tag": tag, "id_campaign": id_campaign, "processed":0, "id_crawler": self.campaign['id_user'],"timestamp": datetime.datetime.now()}
-        db.user_actions_queue.insert(object)
+        for item in feed:
+            object={"targetType": targetType, "tag": tag, "link": "https://www.instagram.com/p/"+item["code"]+"/", "code":item['code'], "instagram_username":item['user']['username'], "id_campaign": id_campaign, "processed":0, "id_crawler": self.campaign['id_user'],"timestamp": datetime.datetime.now()}
+            db.user_actions_queue.insert(object)
         client.close()
-        self.logger.info("insertActions: done... ")
+
+        self.logger.info("insertActions: done inserting %s items.", len(feed
+                                                                        ))
 
         return True
 
@@ -166,7 +170,7 @@ class BotActionsCrawler:
     # returns users that eligible for scanning. Basically users with an active subscription and campaign is active and were not crawled for the past 3 days
     def getEligibleUsers(self):
         filteredUsers = []
-        usersWithActiveSubscription = "select email, instagram_username, campaign.id_campaign, users.id_user from users  join campaign on (users.id_user=campaign.id_user)  join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1  order by users.id_user desc"
+        usersWithActiveSubscription = "select email, instagram_username, campaign.id_campaign, users.id_user from users  join campaign on (users.id_user=campaign.id_user)  join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 and campaign.id_campaign=1 order by users.id_user desc"
         users = api_db.select(usersWithActiveSubscription)
 
         # filter users that have  already been crawled today
