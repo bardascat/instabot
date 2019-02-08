@@ -124,7 +124,7 @@ class BotFeedCrawler:
         return users
 
     def getNumberOfCrawlerBots(self):
-        query = "select count(*) as no_crawlers from campaign where bot_type like 'crawler'";
+        query = "select count(*) as no_crawlers from campaign where bot_type like 'feed_crawler'"
         result = api_db.fetchOne(query)
 
         self.logger.info("getNumberOfCrawlerBots: Found %s crawlers", result['no_crawlers'])
@@ -141,7 +141,7 @@ class BotFeedCrawler:
         return result['total_users']
 
     def getCrawlerIndex(self):
-        sql = "SELECT username FROM `campaign` WHERE bot_type='crawler' order by id_campaign asc"
+        sql = "SELECT username FROM `campaign` WHERE bot_type='feed_crawler' order by id_campaign asc"
         bots = api_db.select(sql)
 
         index = 0
