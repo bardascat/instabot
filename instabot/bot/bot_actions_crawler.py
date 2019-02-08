@@ -6,6 +6,9 @@ from pymongo import MongoClient
 
 from instabot.api import api_db
 import datetime
+import urllib2
+import json
+import traceback
 
 
 class BotActionsCrawler:
@@ -57,9 +60,9 @@ class BotActionsCrawler:
             tags.append({"tag": tag['id_location'], "type": "location"})
 
         self.logger.info("scanUser: Received %s hashtags, %s locations" % (len(hashtags), len(locations)))
-        #self.logger.info("scanUser: Tags: %s" % (tags))
+        # self.logger.info("scanUser: Tags: %s" % (tags))
 
-        #todo: number of iterations should be based on number of tags
+        # todo: number of iterations should be based on number of tags
         if len(tags) == 0:
             self.logger.info("Nothing to do with 0 tags, going to return")
             return False
@@ -67,45 +70,41 @@ class BotActionsCrawler:
         linksPerTag = noOfPostsToScan // len(tags)
         minimumLinksPerTag = 50
 
-
         if linksPerTag < minimumLinksPerTag:
-            self.logger.info("LinksPerTag: %s less than minimumLinksPerTag: %s, going to reset linksPerTag to: %s" % (linksPerTag, minimumLinksPerTag, minimumLinksPerTag))
-            linksPerTag=minimumLinksPerTag
+            self.logger.info("LinksPerTag: %s less than minimumLinksPerTag: %s, going to reset linksPerTag to: %s" % (
+            linksPerTag, minimumLinksPerTag, minimumLinksPerTag))
+            linksPerTag = minimumLinksPerTag
 
         self.logger.info("scanUser: Going to crawl %s links per tag", linksPerTag)
 
-        #todo: make sure that we get tags from both categories
+        # todo: make sure that we get tags from both categories
         shuffle(tags)
 
-        linksSaved=0
+        linksSaved = 0
         for tag in tags:
 
-            if tag['type']=='hashtag':
+            if tag['type'] == 'hashtag':
                 feed = self.instabot.getHashtagFeed(hashtagString=tag['tag'], amount=linksPerTag,
                                                     id_campaign=self.campaign['id_campaign'],
                                                     removeLikedPosts=removeLikedPosts,
                                                     removeFollowedUsers=removeFollowedUsers)
 
-            if tag['type']=='location':
+            if tag['type'] == 'location':
                 feed = self.instabot.getLocationFeed(locationId=tag['tag'], amount=linksPerTag,
-                                                    id_campaign=self.campaign['id_campaign'],
-                                                    removeLikedPosts=removeLikedPosts,
-                                                    removeFollowedUsers=removeFollowedUsers)
-
+                                                     id_campaign=self.campaign['id_campaign'],
+                                                     removeLikedPosts=removeLikedPosts,
+                                                     removeFollowedUsers=removeFollowedUsers)
 
             self.insertActions(feed, tag['type'], tag['tag'], user['id_campaign'])
-            linksSaved+=len(feed)
+            linksSaved += len(feed)
 
-            if linksSaved>=noOfPostsToScan:
+            if linksSaved >= noOfPostsToScan:
                 self.logger.info("scanUser: Reached number of posts to scan: %s, going to exit", noOfPostsToScan)
                 break
 
-
-            #todo: recalculate linksPerTag after each operation
+            # todo: recalculate linksPerTag after each operation
 
         return linksSaved
-
-
 
     def getHashtags(self, id_campaign):
         query = "select hashtag from instagram_hashtags join campaign_config using(id_config) where campaign_config.id_campaign=%s and instagram_hashtags.enabled=1 and campaign_config.enabled=1"
@@ -127,7 +126,9 @@ class BotActionsCrawler:
         db = client.angie_app
 
         for item in feed:
-            object={"targetType": targetType, "tag": tag, "link": "https://www.instagram.com/p/"+item["code"]+"/", "code":item['code'], "instagram_username":item['user']['username'], "id_campaign": id_campaign, "processed":0, "id_crawler": self.campaign['id_user'],"timestamp": datetime.datetime.now()}
+            object = {"targetType": targetType, "tag": tag, "link": "https://www.instagram.com/p/" + item["code"] + "/",
+                      "code": item['code'], "instagram_username": item['user']['username'], "id_campaign": id_campaign,
+                      "processed": 0, "id_crawler": self.campaign['id_user'], "timestamp": datetime.datetime.now()}
             db.user_actions_queue.insert(object)
         client.close()
 
@@ -161,11 +162,46 @@ class BotActionsCrawler:
 
         users = eligibleUsers[offset:count]
 
-        shuffle(users)
-        self.logger.info("getUsersToScan: Found %s users to scan for followers for this bot.", len(eligibleUsers))
+        # shuffle(users)
+        filteredUsers = []
+        users = self.orderUsersByActions(users)
 
-        self.logger.info("getUsersToScan: going to process the following users: %s", users)
-        return users
+        maxLimit = 2000
+        for u in users:
+            if u['queued_items'] > maxLimit:
+                self.logger.info(
+                    "getUsersToScaun: Campaign: %s has %s available actions queued, maxLimit is: %s, going to skip it for now !" % (
+                    u['id_campaign'], u['queued_items'], maxLimit))
+            else:
+                filteredUsers.append(u)
+
+        self.logger.info("getUsersToScan: Found %s users to scan for actions for this bot.", len(filteredUsers))
+
+        self.logger.info("getUsersToScan: going to process the following users: %s", filteredUsers)
+        return filteredUsers
+
+    def orderUsersByActions(self, users):
+        self.logger.info("orderUsersByActions: ordering users by number of actions...")
+        try:
+            url = "https://rest.angie.one/crons/bot/userActionsQueueStatus"
+            contents = urllib2.urlopen(url).read()
+            result = json.loads(contents)['data']
+
+            for u in users:
+                for r in result:
+                    if u['id_campaign'] == r['id_campaign']:
+                        u['queued_items'] = r['queue']
+                        continue
+                if 'queued_items' not in u:
+                    u['queued_items'] = 0
+
+            users.sort(key=lambda x: x['queued_items'], reverse=False)
+            return users
+        except:
+            exceptionDetail = traceback.format_exc()
+            self.logger.error("orderUsersByActions: Error ordering users, going to return default order. %s",
+                              exceptionDetail)
+            return users
 
     # returns users that eligible for scanning. Basically users with an active subscription and campaign is active and were not crawled for the past 3 days
     def getEligibleUsers(self):

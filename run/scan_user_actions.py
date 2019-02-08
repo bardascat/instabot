@@ -19,6 +19,8 @@ parser = argparse.ArgumentParser(add_help=True)
 parser.add_argument('-id_campaign', type=str, help="id_campaign")
 args = parser.parse_args()
 
+#args.id_campaign="401"
+
 if args.id_campaign is None:
     exit("dispatcher: Error: Campaign id it is not specified !")
 
@@ -61,9 +63,6 @@ try:
     bot.logger.info("angie_scan_user_actions: checking if there is already a process started with name: %s",
                     processName)
     canStart = canProcessStart(processName)
-
-    canStart = True
-
 
     if not canStart:
         raise Exception("Error: there is already a  process with name %s. Going to exit", processName)
