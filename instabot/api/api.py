@@ -722,7 +722,7 @@ class API(object):
         if hashtagString[:1] == "#":
             hashtagString = hashtagString[1:]
 
-        tries = 4
+        tries = 6
         feed = []
         next_max_id = None
         securityBreak = 0
@@ -785,7 +785,7 @@ class API(object):
     def getLocationFeed(self, locationId, amount=50, id_campaign=None, removeLikedPosts=False,removeFollowedUsers=False):
         self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/removeLikedPosts:%s/removeFollowedUsers:%s. Started searching for posts by location during 3 iterations." % (id_campaign, locationId, amount, removeLikedPosts, removeFollowedUsers))
 
-        tries = 4
+        tries = 6
         feed = []
         next_max_id = None
         security_check = 0
