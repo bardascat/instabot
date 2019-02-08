@@ -49,8 +49,8 @@ try:
     if campaign is None:
         raise Exception("Could not find campaign for bot user %s", campaign['username'])
 
-    if campaign['bot_type'] != "crawler":
-        raise Exception("Error: user %s is not a crawler bot, is: %s" % (campaign['username'], campaign['bot_type']))
+    if campaign['bot_type'] != "feed_crawler":
+        raise Exception("Error: user %s is not a feed_crawler bot, is: %s" % (campaign['username'], campaign['bot_type']))
 
     bot = Bot(
         id_campaign=str(campaign['id_campaign']),
