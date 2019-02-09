@@ -67,6 +67,7 @@ class BotActionsCrawler:
             self.logger.info("Nothing to do with 0 tags, going to return")
             return False
 
+        shuffle(tags)
         linksPerTag = noOfPostsToScan // len(tags)
         minimumLinksPerTag = 50
 
