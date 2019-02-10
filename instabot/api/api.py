@@ -732,7 +732,7 @@ class API(object):
         next_max_id = None
         securityBreak = 0
 
-        self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/removeLikedPosts:%s/removeFollowedUsers:%s. Started searching for posts by hashtag during % iterations." % (id_campaign, hashtagString, amount, removeLikedPosts, removeFollowedUsers, tries))
+        self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/removeLikedPosts:%s/removeFollowedUsers:%s. Started searching for %s posts by hashtag during %s iterations." % (id_campaign, hashtagString, amount, removeLikedPosts, removeFollowedUsers, amount, tries))
 
 
         while len(feed) < amount and securityBreak < tries:
@@ -801,7 +801,7 @@ class API(object):
         next_max_id = None
         security_check = 0
 
-        self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/removeLikedPosts:%s/removeFollowedUsers:%s. Started searching for posts by location during %s iterations." % (id_campaign, locationId, amount, removeLikedPosts, removeFollowedUsers, tries))
+        self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/removeLikedPosts:%s/removeFollowedUsers:%s. Started searching for %s posts by location during %s iterations." % (id_campaign, locationId, amount, removeLikedPosts, removeFollowedUsers, amount, tries))
 
         while len(feed) < amount and security_check < tries:
 
