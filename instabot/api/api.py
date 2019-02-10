@@ -35,7 +35,7 @@ from .api_profile import setNameAndPhone
 
 from .prepare import get_credentials
 from .prepare import delete_credentials
-from .api_db import insert, getBotIp, fetchOne, excludeAlreadyProcessedLinks
+from .api_db import insert, getBotIp, fetchOne, excludeAlreadyProcessedLinks, excludeAlreadyCrawledLinks
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.poolmanager import PoolManager
 import socket
@@ -722,12 +722,17 @@ class API(object):
         if hashtagString[:1] == "#":
             hashtagString = hashtagString[1:]
 
-        tries = 6
+        averageItemsPerRequest=40
+        tries = amount // averageItemsPerRequest
+        minimumTries = 6
+        if tries < minimumTries:
+            tries = minimumTries
+
         feed = []
         next_max_id = None
         securityBreak = 0
 
-        self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/removeLikedPosts:%s/removeFollowedUsers:%s. Started searching for posts by hashtag during 3 iterations." % (id_campaign, hashtagString, amount, removeLikedPosts, removeFollowedUsers))
+        self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/removeLikedPosts:%s/removeFollowedUsers:%s. Started searching for posts by hashtag during % iterations." % (id_campaign, hashtagString, amount, removeLikedPosts, removeFollowedUsers, tries))
 
 
         while len(feed) < amount and securityBreak < tries:
@@ -772,6 +777,8 @@ class API(object):
             if 'pk' in item.keys():
                 filteredLinks.append(item)
 
+        filteredLinks=excludeAlreadyCrawledLinks(filteredLinks, id_campaign, self.logger)
+
         if id_campaign is False:
             return filteredLinks
 
@@ -783,12 +790,18 @@ class API(object):
         return filteredLinks
 
     def getLocationFeed(self, locationId, amount=50, id_campaign=None, removeLikedPosts=False,removeFollowedUsers=False):
-        self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/removeLikedPosts:%s/removeFollowedUsers:%s. Started searching for posts by location during 3 iterations." % (id_campaign, locationId, amount, removeLikedPosts, removeFollowedUsers))
 
-        tries = 6
+        averageItemsPerRequest = 40
+        tries = amount // averageItemsPerRequest
+        minimumTries = 6
+        if tries < minimumTries:
+            tries = minimumTries
+
         feed = []
         next_max_id = None
         security_check = 0
+
+        self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/removeLikedPosts:%s/removeFollowedUsers:%s. Started searching for posts by location during %s iterations." % (id_campaign, locationId, amount, removeLikedPosts, removeFollowedUsers, tries))
 
         while len(feed) < amount and security_check < tries:
 
@@ -816,11 +829,13 @@ class API(object):
                 self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/it:%s: Next max id is none, this means end of results/no more posts. Going to return %s posts. " % (id_campaign, locationId, amount, security_check, len(feed)))
                 return feed
 
-            security_check += 1
 
-            sleep_time = randint(1, 2)
             self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/it:%s: This iteration received: %s posts, total received %s, total expected: %s " % (id_campaign, locationId, amount, security_check, len(temp["items"]), len(feed), amount))
             #self.logger.info("Sleeping %s seconds" % sleep_time)
+
+            security_check += 1
+            sleep_time = randint(1, 2)
+
             if len(feed)<amount and security_check < tries:
                 time.sleep(sleep_time)
 

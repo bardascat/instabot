@@ -62,7 +62,6 @@ class BotActionsCrawler:
         self.logger.info("scanUser: Received %s hashtags, %s locations" % (len(hashtags), len(locations)))
         # self.logger.info("scanUser: Tags: %s" % (tags))
 
-        # todo: number of iterations should be based on number of tags
         if len(tags) == 0:
             self.logger.info("Nothing to do with 0 tags, going to return")
             return False
@@ -86,13 +85,13 @@ class BotActionsCrawler:
 
             if tag['type'] == 'hashtag':
                 feed = self.instabot.getHashtagFeed(hashtagString=tag['tag'], amount=linksPerTag,
-                                                    id_campaign=self.campaign['id_campaign'],
+                                                    id_campaign=user['id_campaign'],
                                                     removeLikedPosts=removeLikedPosts,
                                                     removeFollowedUsers=removeFollowedUsers)
 
             if tag['type'] == 'location':
                 feed = self.instabot.getLocationFeed(locationId=tag['tag'], amount=linksPerTag,
-                                                     id_campaign=self.campaign['id_campaign'],
+                                                     id_campaign=user['id_campaign'],
                                                      removeLikedPosts=removeLikedPosts,
                                                      removeFollowedUsers=removeFollowedUsers)
 

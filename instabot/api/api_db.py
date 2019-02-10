@@ -8,6 +8,21 @@ def getMongoConnection():
     client = MongoClient(host='localhost', port=27017)
     return client
 
+def excludeAlreadyCrawledLinks(links, id_campaign, logger):
+    client = getMongoConnection()
+    db = client.angie_app
+    filteredLinks = []
+    for item in links:
+        postExists = db.user_actions_queue.find_one({"code":item['code'],'id_campaign':id_campaign})
+
+        if postExists is None:
+            filteredLinks.append(item)
+
+    client.close()
+
+    logger.info("excludeAlreadyCrawledLinks: Received %s links, filtered: %s" % (len(links), len(filteredLinks)))
+
+    return filteredLinks
 
 def excludeAlreadyProcessedLinks(links, id_campaign, removeLikedPosts, removeFollowedUsers, logger):
     client = getMongoConnection()
