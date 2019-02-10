@@ -30,7 +30,7 @@ class BotActionsCrawler:
         self.logger.info("scanUsers: Found %s users to scan.", len(users))
 
         for user in users:
-            self.logger.info("----------STARTED SCANNING ACTIONS USER %s ---------------", user['instagram_username'])
+            self.logger.info("----------STARTED SCANNING ACTIONS USER %s/id_campaign: %s ---------------" % (user['instagram_username'], user['id_campaign']))
 
             result = self.scanUser(user)
 
@@ -132,8 +132,6 @@ class BotActionsCrawler:
             db.user_actions_queue.insert(object)
         client.close()
 
-        self.logger.info("insertActions: done inserting %s items.", len(feed
-                                                                        ))
 
         return True
 
