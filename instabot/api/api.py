@@ -722,11 +722,7 @@ class API(object):
         if hashtagString[:1] == "#":
             hashtagString = hashtagString[1:]
 
-        averageItemsPerRequest=40
-        tries = amount // averageItemsPerRequest
-        minimumTries = 6
-        if tries < minimumTries:
-            tries = minimumTries
+        tries = 10
 
         feed = []
         next_max_id = None
@@ -759,14 +755,15 @@ class API(object):
 
             next_max_id = temp["next_max_id"]
 
-            self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/it:%s: This iteration received: %s posts, total received %s, total expected: %s " % (id_campaign, hashtagString, amount, securityBreak, len(temp["items"]), len(feed), amount))
+            self.logger.info("getHashtagFeed: [%s][%s][%s] Received: %s posts, Total received %s/total expected: %s " % (hashtagString, securityBreak, tries, len(temp["items"]), len(feed), amount))
             securityBreak = securityBreak + 1
             sleep_time = randint(1, 2)
             #self.logger.info("Sleeping %s seconds" % sleep_time)
             if len(feed) < amount and securityBreak < tries:
                 time.sleep(sleep_time)
 
-            self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/it:%s: END iterations, total received %s, total expected: %s " % (id_campaign, hashtagString, amount, securityBreak, len(feed), amount))
+
+        self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/it:%s: END iterations, total received %s, total expected: %s " % (id_campaign, hashtagString, amount, securityBreak, len(feed), amount))
         return feed[:amount]
 
     def filterLinks(self, links, id_campaign=False, removeLikedPosts=False, removeFollowedUsers=False):
@@ -791,12 +788,7 @@ class API(object):
 
     def getLocationFeed(self, locationId, amount=50, id_campaign=None, removeLikedPosts=False,removeFollowedUsers=False):
 
-        averageItemsPerRequest = 40
-        tries = amount // averageItemsPerRequest
-        minimumTries = 6
-        if tries < minimumTries:
-            tries = minimumTries
-
+        tries = 10
         feed = []
         next_max_id = None
         security_check = 0
@@ -830,7 +822,7 @@ class API(object):
                 return feed
 
 
-            self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/it:%s: This iteration received: %s posts, total received %s, total expected: %s " % (id_campaign, locationId, amount, security_check, len(temp["items"]), len(feed), amount))
+            self.logger.info("getLocationFeed: [%s][%s][%s] Received: %s posts, Total received %s/total expected: %s " % (locationId, security_check, tries, len(temp["items"]), len(feed), amount))
             #self.logger.info("Sleeping %s seconds" % sleep_time)
 
             security_check += 1
