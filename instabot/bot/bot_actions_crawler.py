@@ -164,7 +164,7 @@ class BotActionsCrawler:
         filteredUsers = []
         users = self.orderUsersByActions(users)
 
-        maxLimit = 2000
+        maxLimit = 1200
         for u in users:
             if u['queued_items'] > maxLimit:
                 self.logger.info(
