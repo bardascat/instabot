@@ -48,7 +48,7 @@ class BotActionsCrawler:
 
         noOfPostsToScan = self.maxPostsPerUser - user['queued_items']
 
-        self.logger.info("scanUser:[%s]: going to scan for %s posts, user already has in queue: %s posts, max limit: %s" % (user['instagram_username'],self.maxPostsPerUser - user['queued_items'], u['queued_items'], self.maxPostsPerUser))
+        self.logger.info("scanUser:[%s]: going to scan for %s posts, user already has in queue: %s posts, max limit: %s" % (user['instagram_username'],self.maxPostsPerUser - user['queued_items'], user['queued_items'], self.maxPostsPerUser))
 
         removeLikedPosts = True
         removeFollowedUsers = True
