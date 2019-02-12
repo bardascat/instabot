@@ -18,6 +18,7 @@ class BotActionsCrawler:
         self.instabot = instabot
         self.campaign = campaign
         self.logger = instabot.logger
+        self.maxPostsPerUser = 1200
 
     def scanUsers(self):
         self.logger.info("scanUsers: Started with bot: %s !", self.campaign['username'])
@@ -45,7 +46,10 @@ class BotActionsCrawler:
 
     def scanUser(self, user):
 
-        noOfPostsToScan = 1000
+        noOfPostsToScan = self.maxPostsPerUser - user['queued_items']
+
+        self.logger.info("scanUser:[%s]: going to scan for %s posts, user already has in queue: %s posts, max limit: %s" % (user['instagram_username'],self.maxPostsPerUser - user['queued_items'], u['queued_items'], self.maxPostsPerUser))
+
         removeLikedPosts = True
         removeFollowedUsers = True
 
@@ -164,12 +168,11 @@ class BotActionsCrawler:
         filteredUsers = []
         users = self.orderUsersByActions(users)
 
-        maxLimit = 1200
         for u in users:
-            if u['queued_items'] > maxLimit:
+            if u['queued_items'] > self.maxPostsPerUser:
                 self.logger.info(
                     "getUsersToScaun: Campaign: %s has %s available actions queued, maxLimit is: %s, going to skip it for now !" % (
-                    u['id_campaign'], u['queued_items'], maxLimit))
+                    u['id_campaign'], u['queued_items'], self.maxPostsPerUser))
             else:
                 filteredUsers.append(u)
 

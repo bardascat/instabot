@@ -722,7 +722,7 @@ class API(object):
         if hashtagString[:1] == "#":
             hashtagString = hashtagString[1:]
 
-        tries = 10
+        tries = 15
 
         feed = []
         next_max_id = None
@@ -788,7 +788,7 @@ class API(object):
 
     def getLocationFeed(self, locationId, amount=50, id_campaign=None, removeLikedPosts=False,removeFollowedUsers=False):
 
-        tries = 10
+        tries = 15
         feed = []
         next_max_id = None
         security_check = 0
