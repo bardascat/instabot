@@ -749,7 +749,7 @@ class API(object):
 
             for item in items:
                 feed.append(item)
-            self.logger.info("getHashtagFeed: [%s][%s][%s] Received: %s posts, filtered posts: %s. Total received %s/total expected: %s " % (hashtagString, securityBreak, tries, len(temp["items"]), len(item), len(feed), amount))
+            self.logger.info("getHashtagFeed: [%s][%s][%s] Received: %s posts, filtered posts: %s. Total received %s/total expected: %s " % (hashtagString, securityBreak, tries, len(temp["items"]), len(items), len(feed), amount))
 
             if len(items) == 0:
                 self.logger.info("getHashtagFeed: [%s][%s][%s] Filtered posts number is 0, going to return. Total received: %s/expected: %s" % (hashtagString, securityBreak, tries, len(feed), amount))
@@ -774,13 +774,17 @@ class API(object):
 
     def filterLinks(self, links, id_campaign=False, removeLikedPosts=False, removeFollowedUsers=False):
 
+
         filteredLinks = []
 
         for item in links:
             if 'pk' in item.keys():
                 filteredLinks.append(item)
 
+        start = time.time()
         filteredLinks=excludeAlreadyCrawledLinks(filteredLinks, id_campaign, self.logger)
+        end = time.time()
+        self.ogger.info("excludeAlreadyCrawledLinks: takes: %s", end-start)
 
         if id_campaign is False:
             return filteredLinks
@@ -788,7 +792,10 @@ class API(object):
         if removeLikedPosts is False and removeFollowedUsers is False:
             return filteredLinks
 
+        start = time.time()
         filteredLinks = excludeAlreadyProcessedLinks(filteredLinks, id_campaign, removeLikedPosts, removeFollowedUsers, self.logger)
+        end = time.time()
+        self.ogger.info("excludeAlreadyProcessedLinks: takes: %s", end - start)
 
         return filteredLinks
 
