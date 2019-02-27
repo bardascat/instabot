@@ -49,7 +49,7 @@ def excludeAlreadyProcessedLinks(links, id_campaign, removeLikedPosts, removeFol
 
     client.close()
 
-    logger.info("excludeAlreadyProcessedLinks: Total links received: %s, filtered links: %s" % (len(links), len(filteredLinks)))
+    #logger.info("excludeAlreadyProcessedLinks: Total links received: %s, filtered links: %s" % (len(links), len(filteredLinks)))
     return filteredLinks
 
 

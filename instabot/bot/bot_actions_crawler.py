@@ -9,7 +9,7 @@ import datetime
 import urllib2
 import json
 import traceback
-
+import time
 
 class BotActionsCrawler:
     def __init__(self,
@@ -31,14 +31,15 @@ class BotActionsCrawler:
         self.logger.info("scanUsers: Found %s users to scan.", len(users))
 
         for user in users:
+            start = time.time()
             self.logger.info("----------STARTED SCANNING ACTIONS USER %s/id_campaign: %s ---------------" % (user['instagram_username'], user['id_campaign']))
 
             result = self.scanUser(user)
-
-            self.logger.info("----------DONE SCANNING ACTIONS FOR USER %s ---------------", user['instagram_username'])
+            end = time.time()
+            self.logger.info("----------DONE SCANNING ACTIONS FOR USER %s. EXECUTION TIME(m): %s  ---------------" % (user['instagram_username'], (end-start)//60))
 
             if result is not False:
-                pause = randint(3, 4)
+                pause = randint(1, 3)
                 self.logger.info("scanUsers: Pause for %s minutes until processing next user...", pause)
                 time.sleep(pause * 60)
 
@@ -75,7 +76,7 @@ class BotActionsCrawler:
         minimumLinksPerTag = 50
 
         if linksPerTag < minimumLinksPerTag:
-            self.logger.info("LinksPerTag: %s less than minimumLinksPerTag: %s, going to reset linksPerTag to: %s" % (
+            self.logger.info("LinksPerTag: %s links per tag, this is less than minimumLinksPerTag: %s, going to reset linksPerTag to: %s" % (
             linksPerTag, minimumLinksPerTag, minimumLinksPerTag))
             linksPerTag = minimumLinksPerTag
 
