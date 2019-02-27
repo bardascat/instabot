@@ -20,7 +20,7 @@ def excludeAlreadyCrawledLinks(links, id_campaign, logger):
 
     client.close()
 
-    logger.info("excludeAlreadyCrawledLinks: Received %s links, filtered: %s" % (len(links), len(filteredLinks)))
+    #logger.info("excludeAlreadyCrawledLinks: Received %s links, filtered: %s" % (len(links), len(filteredLinks)))
 
     return filteredLinks
 

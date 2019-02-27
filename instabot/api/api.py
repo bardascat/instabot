@@ -784,7 +784,7 @@ class API(object):
         start = time.time()
         filteredLinks=excludeAlreadyCrawledLinks(filteredLinks, id_campaign, self.logger)
         end = time.time()
-        self.ogger.info("excludeAlreadyCrawledLinks: takes: %s", end-start)
+        self.logger.info("excludeAlreadyCrawledLinks: takes: %s", end-start)
 
         if id_campaign is False:
             return filteredLinks
@@ -795,7 +795,7 @@ class API(object):
         start = time.time()
         filteredLinks = excludeAlreadyProcessedLinks(filteredLinks, id_campaign, removeLikedPosts, removeFollowedUsers, self.logger)
         end = time.time()
-        self.ogger.info("excludeAlreadyProcessedLinks: takes: %s", end - start)
+        self.logger.info("excludeAlreadyProcessedLinks: takes: %s", end - start)
 
         return filteredLinks
 
