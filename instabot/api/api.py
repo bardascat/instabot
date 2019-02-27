@@ -79,8 +79,8 @@ class API(object):
 
         # this is not working atm
         # logs_folder = os.environ['INSTABOT_LOGS_PATH']
-        #logs_folder = "/home/instabot-log"
-        logs_folder = "/Users/cbardas/instabot-log/"
+        logs_folder = "/home/instabot-log"
+        #logs_folder = "/Users/cbardas/instabot-log/"
         campaign_folder = logs_folder + "/campaign/" + id_campaign
 
         log_path = campaign_folder + "/" + filename
