@@ -79,7 +79,8 @@ class API(object):
 
         # this is not working atm
         # logs_folder = os.environ['INSTABOT_LOGS_PATH']
-        logs_folder = "/home/instabot-log"
+        #logs_folder = "/home/instabot-log"
+        logs_folder = "/Users/cbardas/instabot-log/"
         campaign_folder = logs_folder + "/campaign/" + id_campaign
 
         log_path = campaign_folder + "/" + filename
@@ -743,10 +744,16 @@ class API(object):
             if "items" not in temp:
                 self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/it:%s: No more posts with this hashtag found in http response, going to return %s posts " % (id_campaign, hashtagString, amount, securityBreak, len(feed)))
                 return feed
+
             items = self.filterLinks(temp["items"], id_campaign=id_campaign, removeLikedPosts=removeLikedPosts, removeFollowedUsers=removeFollowedUsers)
 
             for item in items:
                 feed.append(item)
+            self.logger.info("getHashtagFeed: [%s][%s][%s] Received: %s posts, filtered posts: %s. Total received %s/total expected: %s " % (hashtagString, securityBreak, tries, len(temp["items"]), len(item), len(feed), amount))
+
+            if len(items) == 0:
+                self.logger.info("getHashtagFeed: [%s][%s][%s] Filtered posts number is 0, going to return. Total received: %s/expected: %s" % (hashtagString, securityBreak, tries, len(feed), amount))
+                return feed
 
             if "next_max_id" not in temp:
                 self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/it:%s: Next max id is none, this means end of results/no more posts. Going to return %s posts. " % (id_campaign, hashtagString, amount, securityBreak, len(feed)))
@@ -754,11 +761,7 @@ class API(object):
 
             next_max_id = temp["next_max_id"]
 
-            self.logger.info("getHashtagFeed: [%s][%s][%s] Received: %s posts, filtered posts: %s. Total received %s/total expected: %s " % (hashtagString, securityBreak, tries, len(temp["items"]), len(item), len(feed), amount))
 
-            if len(items) == 0:
-                self.logger.info("getHashtagFeed: [%s][%s][%s] Filtered posts number is 0, going to return. Total received: %s/expected: %s" % (hashtagString, securityBreak, tries, len(feed), amount))
-                return feed
             securityBreak = securityBreak + 1
             sleep_time = randint(1, 2)
             #self.logger.info("Sleeping %s seconds" % sleep_time)
@@ -818,17 +821,16 @@ class API(object):
             for item in items:
                 feed.append(item)
 
-            if "next_max_id" in temp:
-                next_max_id = temp["next_max_id"]
-            else:
-                self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/it:%s: Next max id is none, this means end of results/no more posts. Going to return %s posts. " % (id_campaign, locationId, amount, security_check, len(feed)))
-                return feed
-
-
             self.logger.info("getLocationFeed: [%s][%s][%s] Received: %s posts, filtered posts: %s. Total received %s/total expected: %s " % (locationId, security_check, tries, len(temp["items"]), len(items), len(feed), amount))
 
             if len(items) == 0:
                 self.logger.info("getLocationFeed: [%s][%s][%s] Filtered posts number is 0, going to return. Total received: %s/expected: %s" % (locationId, security_check, tries, len(feed), amount))
+                return feed
+
+            if "next_max_id" in temp:
+                next_max_id = temp["next_max_id"]
+            else:
+                self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/it:%s: Next max id is none, this means end of results/no more posts. Going to return %s posts. " % (id_campaign, locationId, amount, security_check, len(feed)))
                 return feed
 
             security_check += 1
