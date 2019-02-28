@@ -733,10 +733,13 @@ class API(object):
 
 
         while len(feed) < amount and securityBreak < tries:
+            start = time.time()
             if not next_max_id:
                 self.SendRequest('feed/tag/' + hashtagString)
             else:
                 self.SendRequest('feed/tag/' + hashtagString + '/?max_id=' + str(next_max_id))
+            end = time.time()
+            self.logger.info("HTTP REQUEST: takes: %s", end - start)
 
             temp = self.LastJson
 
@@ -763,10 +766,8 @@ class API(object):
 
 
             securityBreak = securityBreak + 1
-            sleep_time = randint(1, 2)
-            #self.logger.info("Sleeping %s seconds" % sleep_time)
-            if len(feed) < amount and securityBreak < tries:
-                time.sleep(sleep_time)
+            sleep_time = 1
+            time.sleep(sleep_time)
 
 
         self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/it:%s: END iterations, total received %s, total expected: %s " % (id_campaign, hashtagString, amount, securityBreak, len(feed), amount))
@@ -781,10 +782,10 @@ class API(object):
             if 'pk' in item.keys():
                 filteredLinks.append(item)
 
-        start = time.time()
+        #start = time.time()
         filteredLinks=excludeAlreadyCrawledLinks(filteredLinks, id_campaign, self.logger)
-        end = time.time()
-        self.logger.info("excludeAlreadyCrawledLinks: takes: %s", end-start)
+        #end = time.time()
+        #self.logger.info("excludeAlreadyCrawledLinks: takes: %s", end-start)
 
         if id_campaign is False:
             return filteredLinks
@@ -792,10 +793,10 @@ class API(object):
         if removeLikedPosts is False and removeFollowedUsers is False:
             return filteredLinks
 
-        start = time.time()
+        #start = time.time()
         filteredLinks = excludeAlreadyProcessedLinks(filteredLinks, id_campaign, removeLikedPosts, removeFollowedUsers, self.logger)
-        end = time.time()
-        self.logger.info("excludeAlreadyProcessedLinks: takes: %s", end - start)
+        #end = time.time()
+        #self.logger.info("excludeAlreadyProcessedLinks: takes: %s", end - start)
 
         return filteredLinks
 
@@ -841,10 +842,9 @@ class API(object):
                 return feed
 
             security_check += 1
-            sleep_time = randint(1, 2)
+            sleep_time = 1
 
-            if len(feed)<amount and security_check < tries:
-                time.sleep(sleep_time)
+            time.sleep(sleep_time)
 
         self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/it:%s: END iterations, total received %s, total expected: %s " % (id_campaign, locationId, amount, security_check, len(feed), amount))
         return feed[:amount]
