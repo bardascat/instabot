@@ -733,13 +733,10 @@ class API(object):
 
 
         while len(feed) < amount and securityBreak < tries:
-            start = time.time()
             if not next_max_id:
                 self.SendRequest('feed/tag/' + hashtagString)
             else:
                 self.SendRequest('feed/tag/' + hashtagString + '/?max_id=' + str(next_max_id))
-            end = time.time()
-            self.logger.info("HTTP REQUEST: takes: %s", end - start)
 
             temp = self.LastJson
 
