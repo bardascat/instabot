@@ -733,6 +733,7 @@ class API(object):
 
 
         while len(feed) < amount and securityBreak < tries:
+            time.sleep(1)
             if not next_max_id:
                 self.SendRequest('feed/tag/' + hashtagString)
             else:
@@ -761,10 +762,7 @@ class API(object):
 
             next_max_id = temp["next_max_id"]
 
-
             securityBreak = securityBreak + 1
-            sleep_time = 1
-            time.sleep(sleep_time)
 
 
         self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/it:%s: END iterations, total received %s, total expected: %s " % (id_campaign, hashtagString, amount, securityBreak, len(feed), amount))
@@ -807,9 +805,8 @@ class API(object):
         self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/removeLikedPosts:%s/removeFollowedUsers:%s. Started searching for %s posts by location during %s iterations." % (id_campaign, locationId, amount, removeLikedPosts, removeFollowedUsers, amount, tries))
 
         while len(feed) < amount and security_check < tries:
-
+            time.sleep(1)
             if not next_max_id:
-
                 self.SendRequest('feed/location/' + str(locationId))
             else:
                 self.SendRequest('feed/location/' + str(locationId) + '/?max_id=' + str(next_max_id))
@@ -839,9 +836,6 @@ class API(object):
                 return feed
 
             security_check += 1
-            sleep_time = 1
-
-            time.sleep(sleep_time)
 
         self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/it:%s: END iterations, total received %s, total expected: %s " % (id_campaign, locationId, amount, security_check, len(feed), amount))
         return feed[:amount]
