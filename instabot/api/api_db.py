@@ -12,19 +12,20 @@ def excludeAlreadyCrawledLinks(links, queue, id_campaign, logger):
 
     filteredLinks = []
 
-    for post in links:
-        if any(x for x in queue if x['user']['username'] == post['user']['username']) is False:
-            filteredLinks.append(post)
-
-
     client = getMongoConnection()
     db = client.angie_app
 
     for item in links:
-        postExists = db.user_actions_queue.find_one({"instagram_username":item['user']['username'], "processed":0, 'id_campaign':id_campaign})
 
-        if postExists is None:
-            filteredLinks.append(item)
+        itemInLocalQueue = any(x for x in queue if x['user']['username'] == item['user']['username'])
+        if itemInLocalQueue is True:
+            continue
+
+        itemInMongoQueue = db.user_actions_queue.find_one({"instagram_username":item['user']['username'], "processed":0, 'id_campaign':id_campaign})
+        if itemInMongoQueue is not None:
+            continue
+
+        filteredLinks.append(item)
 
     client.close()
 
