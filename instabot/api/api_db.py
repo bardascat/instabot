@@ -8,12 +8,20 @@ def getMongoConnection():
     client = MongoClient(host='localhost', port=27017)
     return client
 
-def excludeAlreadyCrawledLinks(links, id_campaign, logger):
+def excludeAlreadyCrawledLinks(links, queue, id_campaign, logger):
+
+    filteredLinks = []
+
+    for post in links:
+        if any(x for x in queue if x['user']['username'] == post['user']['username']) is False:
+            filteredLinks.append(post)
+
+
     client = getMongoConnection()
     db = client.angie_app
-    filteredLinks = []
+
     for item in links:
-        postExists = db.user_actions_queue.find_one({"code":item['code'],'id_campaign':id_campaign})
+        postExists = db.user_actions_queue.find_one({"instagram_username":item['user']['username'], "processed":0, 'id_campaign':id_campaign})
 
         if postExists is None:
             filteredLinks.append(item)
@@ -40,7 +48,7 @@ def excludeAlreadyProcessedLinks(links, id_campaign, removeLikedPosts, removeFol
         if removeFollowedUsers is True:
             #logger.info("excludeAlreadyProcessedLinks: checking username: %s, id_campaign: %s, " % (item['user']['username'], id_campaign))
 
-            userFollowed = db.bot_action.find_one({"username": item["user"]["username"], "id_campaign": int(id_campaign),"bot_operation": {"$regex": "^follow_engagement_"}})
+            userFollowed = db.bot_action.find_one({"username": item["user"]["username"], "id_campaign": int(id_campaign), "bot_operation": {"$regex": "^follow_engagement_"}})
             if userFollowed is not None:
                 #logger.info("excludeAlreadyProcessedLinks: User %s was already followed, going to skip it" % (item["user"]["username"]))
                 continue

@@ -746,7 +746,7 @@ class API(object):
                 self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/it:%s: No more posts with this hashtag found in http response, going to return %s posts " % (id_campaign, hashtagString, amount, securityBreak, len(feed)))
                 return feed
 
-            items = self.filterLinks(temp["items"], id_campaign=id_campaign, removeLikedPosts=removeLikedPosts, removeFollowedUsers=removeFollowedUsers)
+            items = self.filterLinks(temp["items"],feed, id_campaign=id_campaign, removeLikedPosts=removeLikedPosts, removeFollowedUsers=removeFollowedUsers)
 
             for item in items:
                 feed.append(item)
@@ -768,7 +768,7 @@ class API(object):
         self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/it:%s: END iterations, total received %s, total expected: %s " % (id_campaign, hashtagString, amount, securityBreak, len(feed), amount))
         return feed[:amount]
 
-    def filterLinks(self, links, id_campaign=False, removeLikedPosts=False, removeFollowedUsers=False):
+    def filterLinks(self, links, queue, id_campaign=False, removeLikedPosts=False, removeFollowedUsers=False):
 
 
         filteredLinks = []
@@ -778,7 +778,7 @@ class API(object):
                 filteredLinks.append(item)
 
         #start = time.time()
-        filteredLinks=excludeAlreadyCrawledLinks(filteredLinks, id_campaign, self.logger)
+        filteredLinks=excludeAlreadyCrawledLinks(filteredLinks, queue, id_campaign, self.logger)
         #end = time.time()
         #self.logger.info("excludeAlreadyCrawledLinks: takes: %s", end-start)
 
@@ -818,7 +818,7 @@ class API(object):
                 self.logger.info("getLocationFeed: c:%s/location:%s/amount:%s/it:%s: No more posts with this location found in http response, going to return %s posts " % (id_campaign, locationId, amount, security_check, len(feed)))
                 return feed
 
-            items = self.filterLinks(temp["items"], id_campaign=id_campaign, removeLikedPosts=removeLikedPosts,removeFollowedUsers=removeFollowedUsers)
+            items = self.filterLinks(temp["items"], feed, id_campaign=id_campaign, removeLikedPosts=removeLikedPosts,removeFollowedUsers=removeFollowedUsers)
 
             for item in items:
                 feed.append(item)
