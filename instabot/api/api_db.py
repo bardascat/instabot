@@ -11,17 +11,19 @@ def getMongoConnection():
 def excludeAlreadyCrawledLinks(links, queue, id_campaign, logger):
 
     filteredLinks = []
+    seen = set()
+    uniqueList = [obj for obj in links if obj['user']['username'] not in seen and not seen.add(obj['user']['username'])]
 
     client = getMongoConnection()
     db = client.angie_app
 
-    for item in links:
+    for item in uniqueList:
 
         itemInLocalQueue = any(x for x in queue if x['user']['username'] == item['user']['username'])
         if itemInLocalQueue is True:
             continue
 
-        itemInMongoQueue = db.user_actions_queue.find_one({"instagram_username":item['user']['username'], "processed":0, 'id_campaign':id_campaign})
+        itemInMongoQueue = db.user_actions_queue.find_one({"instagram_username":item['user']['username'], 'id_campaign':id_campaign})
         if itemInMongoQueue is not None:
             continue
 
