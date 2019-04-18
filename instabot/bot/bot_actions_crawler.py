@@ -126,6 +126,9 @@ class BotActionsCrawler:
         return client
 
     def insertActions(self, feed, targetType, tag, id_campaign):
+        if len(feed)==0:
+            return False
+
         self.logger.info("insertActions: saving %s actions." % len(feed))
         client = self.getDatabaseConnection()
         db = client.angie_app

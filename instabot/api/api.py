@@ -741,6 +741,7 @@ class API(object):
 
             temp = self.LastJson
 
+            self.rateTag(temp, securityBreak, hashtagString, 'hashtag')
             # the result is damaged
             if "items" not in temp:
                 self.logger.info("getHashtagFeed: c:%s/hashtag:%s/amount:%s/it:%s: No more posts with this hashtag found in http response, going to return %s posts " % (id_campaign, hashtagString, amount, securityBreak, len(feed)))
@@ -812,6 +813,7 @@ class API(object):
                 self.SendRequest('feed/location/' + str(locationId) + '/?max_id=' + str(next_max_id))
 
             temp = self.LastJson
+            self.rateTag(temp, security_check, locationId, 'location')
 
             # the result is damaged
             if "items" not in temp:  # if no items
@@ -826,7 +828,7 @@ class API(object):
             self.logger.info("getLocationFeed: [%s][%s][%s] Received: %s posts, filtered posts: %s. Total received %s/total expected: %s " % (locationId, security_check, tries, len(temp["items"]), len(items), len(feed), amount))
 
             if len(items) == 0:
-                self.logger.info("getLocationFeed: [%s][%s][%s] Filtered posts number is 0, going to return. Total received: %s/expected: %s" % (locationId, security_check, tries, len(feed), amount))
+                self.logger.info("getLocationFeed: [%s][%s][%s] Filtered posts number is 0, going to RETURN. Total received: %s/expected: %s" % (locationId, security_check, tries, len(feed), amount))
                 return feed
 
             if "next_max_id" in temp:
@@ -1076,3 +1078,16 @@ class API(object):
             for item in temp["items"]:
                 liked_items.append(item)
         return liked_items
+
+    def rateTag(self, response, iteration, tag, type):
+        if iteration>0:
+            return True
+
+        if "items" not in response or len(response['items']) == 0:
+            self.logger.info("rateTag: Tag %s was disabled, no items retrieved!", tag)
+
+            if type=='hashtag':
+                insert("update instagram_hashtags set enabled=0 where hashtag=%s", tag)
+            elif type=='location':
+                insert("update instagram_locations set enabled=0 where id_location=%s", tag)
+
