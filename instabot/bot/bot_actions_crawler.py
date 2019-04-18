@@ -149,7 +149,10 @@ class BotActionsCrawler:
         noCrawlers = self.getNumberOfCrawlerBots()
         totalUsers = len(eligibleUsers)
         crawlerIndex = self.getCrawlerIndex()
-        usersPersCrawler = totalUsers // noCrawlers
+        if totalUsers < noCrawlers:
+            usersPersCrawler = totalUsers
+        else:
+            usersPersCrawler = totalUsers // noCrawlers
         offset = crawlerIndex * usersPersCrawler
         count = usersPersCrawler + offset
         if crawlerIndex == noCrawlers - 1:
@@ -208,7 +211,7 @@ class BotActionsCrawler:
     # returns users that eligible for scanning. Basically users with an active subscription and campaign is active and were not crawled for the past 3 days
     def getEligibleUsers(self):
         filteredUsers = []
-        usersWithActiveSubscription = "select email, instagram_username, campaign.id_campaign, users.id_user from users  join campaign on (users.id_user=campaign.id_user)  join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1  order by users.id_user desc"
+        usersWithActiveSubscription = "select email, instagram_username, campaign.id_campaign, users.id_user from users  join campaign on (users.id_user=campaign.id_user)  join user_subscription on (users.id_user = user_subscription.id_user)  where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1  and campaign.id_campaign=444 order by users.id_user desc"
         users = api_db.select(usersWithActiveSubscription)
 
         # filter users that have  already been crawled today
