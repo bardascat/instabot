@@ -29,7 +29,7 @@ class BotFeedCrawler:
                 self.logger.info("scanUsers: Pause for %s seconds until processing next user...", pause)
                 time.sleep(pause)
 
-            pause = randint(4, 6)
+            pause = randint(2, 3)
             self.logger.info("scanUsers: Iteration %s ended, going to sleep for %s minutes" % (iteration, pause))
             iteration = iteration + 1
             time.sleep(pause * 60)
