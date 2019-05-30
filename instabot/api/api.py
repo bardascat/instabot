@@ -306,6 +306,8 @@ class API(object):
                     config.API_URL + endpoint, verify=True)
         except Exception as e:
             self.logger.warning("ERROR: Processing the request: %s",str(e))
+            self.LastResponse = {"status_code":404}
+            self.LastJson = {}
             return False
 
         if response.status_code == 200:

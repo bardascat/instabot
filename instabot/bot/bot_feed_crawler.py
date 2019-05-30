@@ -50,7 +50,7 @@ class BotFeedCrawler:
         instagramUserId = self.instabot.get_userid_from_username(user['instagram_username'])
 
         if self.instabot.LastResponse.status_code is 404:
-            self.logger.info("Instagram returned 404 for user %s", user['instagram_username'])
+            self.logger.info("Instagram returned %s for user %s" %  (user['instagram_username'],self.instabot.LastResponse.status_code))
             return False
 
         if self.instabot.LastResponse.status_code is not 200 and self.instabot.LastResponse.status_code is not 404:
@@ -78,9 +78,8 @@ class BotFeedCrawler:
                 "scanUser: Last post is none, going to set recentThan date to user subscription  %s",
                 recentThan)
         else:
-            recentThan = lastPost['timestamp']
-            self.logger.info("scanUser: Last post is NOT NONE, going to set recentThan date to %s",
-                             recentThan)
+            recentThan = lastPost['taken_at']
+            self.logger.info("scanUser: Last post is NOT NONE, going to set recentThan date to %s",recentThan)
 
         medias = self.instabot.get_recent_user_medias(instagramUserId, recentThan)
         self.logger.info(
