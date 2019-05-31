@@ -5,7 +5,7 @@ from pymongo import MongoClient
 
 
 def getMongoConnection():
-    client = MongoClient(host='localhost', port=27017)
+    client = MongoClient(host='104.248.128.65', port=27017)
     return client
 
 def excludeAlreadyCrawledLinks(links, queue, id_campaign, logger):
