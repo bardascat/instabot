@@ -74,16 +74,13 @@ class BotFeedCrawler:
 
         if lastPost is None:
             recentThan = user['start_date']
-            self.logger.info(
-                "scanUser: Last post is none, going to set recentThan date to user subscription  %s",
-                recentThan)
+            self.logger.info("scanUser: Last post is none, going to set recentThan date to user subscription  %s",recentThan)
         else:
-            recentThan = lastPost['taken_at']
+            recentThan = lastPost['instagram_published_date']
             self.logger.info("scanUser: Last post is NOT NONE, going to set recentThan date to %s",recentThan)
 
         medias = self.instabot.get_recent_user_medias(instagramUserId, recentThan)
-        self.logger.info(
-            "scanUser:  Found %s medias for user %s, going to save them in database." % (len(medias), user['email']))
+        self.logger.info("scanUser:  Found %s medias for user %s, going to save them in database." % (len(medias), user['email']))
 
         if len(medias) > 0:
             for media in medias:
