@@ -122,7 +122,7 @@ class BotActionsCrawler:
         return result
 
     def getDatabaseConnection(self):
-        client = MongoClient(host='localhost', port=27017)
+        client = MongoClient(host="104.248.128.65", port=27017)
         return client
 
     def insertActions(self, feed, targetType, tag, id_campaign):
