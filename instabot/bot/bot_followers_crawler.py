@@ -81,7 +81,7 @@ class BotFollowersCrawler:
 
 
     def getDatabaseConnection(self):
-        client = MongoClient(host="104.248.128.65", port=27017)
+        client = MongoClient('mongodb://angie_app:angiePasswordDB@104.248.128.65/angie_app')
         return client
 
     def insertFollowers(self, followersObject):
