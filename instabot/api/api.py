@@ -1082,7 +1082,7 @@ class API(object):
         return liked_items
 
     def rateTag(self, response, iteration, tag, type):
-        if iteration>0:
+        if iteration>0 or self.LastResponse.status_code is not 200:
             return True
 
         if "items" not in response or len(response['items']) == 0:
