@@ -192,7 +192,9 @@ class BotActionsCrawler:
         self.logger.info("orderUsersByActions: ordering users by number of actions...")
         try:
             url = "https://rest.angie.one/crons/bot/userActionsQueueStatus"
-            contents = urllib2.urlopen(url).read()
+            req = urllib2.Request(url)
+            req.add_header('Authorization', 'Bearer b5a42bd29ebc5697adcec0adf446c26e')
+            contents = urllib2.urlopen(req).read()
             result = json.loads(contents)['data']
 
             for u in users:
