@@ -7,7 +7,7 @@ from instabot.api import api_db
 
 
 def getActiveUsers():
-    query = "select * from users join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user) where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 and campaign.id_campaign=1 order by users.id_user asc"
+    query = "select * from users join campaign on (users.id_user=campaign.id_user) join user_subscription on (users.id_user = user_subscription.id_user) where (user_subscription.end_date>now() or user_subscription.end_date is null) and campaign.active=1 order by users.id_user asc"
     users = api_db.select(query)
     return users
 
@@ -81,7 +81,7 @@ users = getActiveUsers()
 for user in users:
     print("Going to process angie user" + user["email"])
     followerUsers = getFollowedUsers(path + "/" + str(user['id_campaign']))
-    print("Found " + str(len(users)) + " followed users for this user.")
+    print("Found " + str(len(users)) + " followed users in log files.")
     print("Going to check with database")
 
     for followedUser in followerUsers:
